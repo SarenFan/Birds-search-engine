@@ -5,6 +5,11 @@ beautifulsoup4>=4.12.0
 lxml>=5.0.0
 brotli>=1.0.0
 
+# Browser Automation (for bypassing anti-scraping)
+selenium>=4.16.0
+undetected-chromedriver>=3.5.0
+fake-useragent>=1.4.0
+
 # Data Processing
 pandas>=2.1.0
 numpy>=1.26.0
@@ -15,6 +20,3 @@ jsonlines>=4.0.0
 # Utils
 tqdm>=4.66.0
 python-dotenv>=1.0.0
-
-# Browser automation (for bypassing anti-bot)
-# selenium>=4.0.0  # Uncomment when needed
