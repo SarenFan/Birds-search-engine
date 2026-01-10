@@ -1,6 +1,7 @@
 # CHIẾN LƯỢC CRAWL 1 TRIỆU DOCS VỚI 1 MÁY TÍNH
 
 ## 🎯 MỤC TIÊU
+
 - Crawl 1,000,000 documents từ 4 nguồn
 - Chạy ngắt quãng (có thể dừng/tiếp tục)
 - Ban đêm: Chạy crawler
@@ -11,11 +12,13 @@
 ## 📊 PHÂN TÍCH VÀ KẾ HOẠCH
 
 ### Thời Gian Khả Dụng
+
 - **Ban đêm:** 10 giờ/ngày (22:00 - 08:00)
 - **Cuối tuần:** 20 giờ/ngày (có thể chạy cả ngày)
 - **Tổng:** ~90-100 giờ/tuần
 
 ### Tốc Độ Cần Thiết
+
 ```
 Target: 1,000,000 docs trong 3 tuần (Tuần 2-4)
 Thời gian khả dụng: ~270 giờ (3 tuần × 90h/tuần)
@@ -25,12 +28,13 @@ Thực tế với overhead: Cần ~1.5-2 docs/giây
 ```
 
 ### Phân Bổ Nguồn (4 crawlers song song)
-| Nguồn    | Target  | Docs/giờ | Giờ cần | Tuần cần |
-|----------|---------|----------|---------|----------|
-| Voz      | 400,000 | 1,500    | 267h    | 2.96 tuần|
-| TinhTe   | 300,000 | 1,100    | 273h    | 3.03 tuần|
-| Spiderum | 200,000 | 750      | 267h    | 2.96 tuần|
-| Otofun   | 100,000 | 375      | 267h    | 2.96 tuần|
+
+| Nguồn    | Target  | Docs/giờ | Giờ cần | Tuần cần  |
+| -------- | ------- | -------- | ------- | --------- |
+| Voz      | 400,000 | 1,500    | 267h    | 2.96 tuần |
+| TinhTe   | 300,000 | 1,100    | 273h    | 3.03 tuần |
+| Spiderum | 200,000 | 750      | 267h    | 2.96 tuần |
+| Otofun   | 100,000 | 375      | 267h    | 2.96 tuần |
 
 **Kết luận:** Nếu chạy 4 sources SONG SONG, có thể hoàn thành trong 3 tuần!
 
@@ -43,7 +47,7 @@ Thực tế với overhead: Cần ~1.5-2 docs/giây
 ```python
 # Run 4 crawlers đồng thời, mỗi crawler 1 process riêng
 Process 1: Voz crawler
-Process 2: TinhTe crawler  
+Process 2: TinhTe crawler
 Process 3: Spiderum crawler
 Process 4: Otofun crawler
 
@@ -56,11 +60,13 @@ Mỗi process:
 ### 2. CHECKPOINT & RESUME SYSTEM
 
 **Tại sao quan trọng:**
+
 - Dừng crawler lúc 8h sáng → Resume lúc 10h tối
 - Máy crash/mất điện → Không mất dữ liệu
 - Track progress real-time
 
 **Cách hoạt động:**
+
 ```json
 // voz_checkpoint.json
 {
@@ -76,6 +82,7 @@ Mỗi process:
 ### 3. RESOURCE OPTIMIZATION
 
 **A. Memory Management:**
+
 ```python
 # Write data incrementally (mỗi 100 docs)
 # Clear cache sau mỗi page
@@ -83,6 +90,7 @@ Mỗi process:
 ```
 
 **B. Browser Optimization:**
+
 ```python
 options.add_argument('--disable-images')  # Giảm 60% bandwidth
 options.add_argument('--disable-css')     # Giảm 20% load time
@@ -90,6 +98,7 @@ options.add_argument('--disk-cache-size=0')  # Không cache
 ```
 
 **C. Batch Processing:**
+
 ```python
 # Thay vì crawl từng thread:
 # 1. Lấy list 100 thread URLs
@@ -102,6 +111,7 @@ options.add_argument('--disk-cache-size=0')  # Không cache
 ## 🛠️ IMPLEMENTATION
 
 ### File Structure
+
 ```
 SEG301-Project/
 ├── crawler_manager.py          # Main orchestrator
@@ -127,6 +137,7 @@ SEG301-Project/
 ### Main Orchestrator Script
 
 **File: `crawler_manager.py`**
+
 ```python
 #!/usr/bin/env python3
 """
@@ -142,7 +153,7 @@ class CrawlerManager:
     def __init__(self):
         self.processes = []
         self.should_stop = False
-        
+
     def start_crawler(self, crawler_class, name, target_docs):
         """Start a crawler in separate process"""
         def run():
@@ -152,64 +163,64 @@ class CrawlerManager:
                 max_docs=target_docs
             )
             crawler.run()
-        
+
         p = mp.Process(target=run, name=name)
         p.start()
         self.processes.append(p)
         print(f"✓ Started {name} crawler (PID: {p.pid})")
-        
+
     def start_all(self):
         """Start all 4 crawlers"""
         print("="*80)
         print("STARTING ALL CRAWLERS")
         print("="*80)
-        
+
         # Start each crawler
         self.start_crawler(VozCrawlerV2, 'voz', 400000)
         self.start_crawler(TinhTeCrawlerV2, 'tinhte', 300000)
         self.start_crawler(SpiderumCrawlerV2, 'spiderum', 200000)
         self.start_crawler(OtofunCrawlerV2, 'otofun', 100000)
-        
+
         print(f"\n✓ All crawlers started at {datetime.now()}")
-        
+
     def stop_all(self):
         """Gracefully stop all crawlers"""
         print("\n" + "="*80)
         print("STOPPING ALL CRAWLERS")
         print("="*80)
-        
+
         for p in self.processes:
             if p.is_alive():
                 print(f"Stopping {p.name}...")
                 p.terminate()
                 p.join(timeout=10)
-                
+
         print("✓ All crawlers stopped")
-        
+
     def monitor(self):
         """Monitor crawler progress"""
         try:
             while any(p.is_alive() for p in self.processes):
                 time.sleep(60)  # Check every minute
-                
+
                 # Print status
                 alive = [p.name for p in self.processes if p.is_alive()]
                 print(f"[{datetime.now().strftime('%H:%M:%S')}] Running: {', '.join(alive)}")
-                
+
         except KeyboardInterrupt:
             print("\n⚠️  Interrupted by user")
             self.stop_all()
 
 if __name__ == "__main__":
     manager = CrawlerManager()
-    
+
     # Handle Ctrl+C gracefully
     def signal_handler(sig, frame):
         manager.stop_all()
         sys.exit(0)
-    
+
     signal.signal(signal.SIGINT, signal_handler)
-    
+
     # Start and monitor
     manager.start_all()
     manager.monitor()
@@ -218,6 +229,7 @@ if __name__ == "__main__":
 ### Auto Night Crawler Script
 
 **File: `night_crawler.py`**
+
 ```python
 #!/usr/bin/env python3
 """
@@ -233,23 +245,23 @@ class NightCrawler:
         self.start_time = time(22, 0)  # 10 PM
         self.end_time = time(8, 0)     # 8 AM
         self.process = None
-        
+
     def is_night_time(self):
         """Check if current time is night time"""
         now = datetime.now().time()
-        
+
         if self.start_time < self.end_time:
             # Normal case (e.g., 10:00 - 20:00)
             return self.start_time <= now <= self.end_time
         else:
             # Night case (e.g., 22:00 - 08:00)
             return now >= self.start_time or now <= self.end_time
-    
+
     def start_crawlers(self):
         """Start crawler manager"""
         if self.process is None or self.process.poll() is not None:
             print(f"🌙 Starting crawlers at {datetime.now()}")
-            
+
             # Activate venv and run crawler manager
             cmd = "source venv/bin/activate && python3 crawler_manager.py"
             self.process = subprocess.Popen(
@@ -259,7 +271,7 @@ class NightCrawler:
                 cwd=os.getcwd()
             )
             print(f"✓ Crawlers started (PID: {self.process.pid})")
-    
+
     def stop_crawlers(self):
         """Stop crawler manager"""
         if self.process and self.process.poll() is None:
@@ -267,7 +279,7 @@ class NightCrawler:
             self.process.terminate()
             self.process.wait(timeout=30)
             print("✓ Crawlers stopped")
-    
+
     def run(self):
         """Main loop"""
         print("="*80)
@@ -275,7 +287,7 @@ class NightCrawler:
         print("="*80)
         print(f"Schedule: {self.start_time} - {self.end_time}")
         print("Press Ctrl+C to stop\n")
-        
+
         try:
             while True:
                 if self.is_night_time():
@@ -284,10 +296,10 @@ class NightCrawler:
                 else:
                     # Day time - should be stopped
                     self.stop_crawlers()
-                
+
                 # Check every 5 minutes
                 t.sleep(300)
-                
+
         except KeyboardInterrupt:
             print("\n⚠️  Scheduler stopped by user")
             self.stop_crawlers()
@@ -379,6 +391,7 @@ sudo journalctl -u seg301-crawler -f
 ### Real-time Progress Dashboard
 
 **File: `monitor_progress.py`**
+
 ```python
 #!/usr/bin/env python3
 """
@@ -410,36 +423,36 @@ while True:
     print("="*80)
     print(f"CRAWL PROGRESS MONITOR - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("="*80)
-    
+
     sources = [
         ('Voz', 400000),
         ('TinhTe', 300000),
         ('Spiderum', 200000),
         ('Otofun', 100000)
     ]
-    
+
     total_collected = 0
-    
+
     for name, target in sources:
         checkpoint = load_checkpoint(name.lower())
         collected = checkpoint.get('docs_collected', 0)
         total_collected += collected
-        
+
         progress = (collected / target) * 100
         file_size = get_file_size(f'data/{name.lower()}_data.jsonl')
-        
+
         bar_length = 40
         filled = int(bar_length * progress / 100)
         bar = '█' * filled + '░' * (bar_length - filled)
-        
+
         print(f"\n{name:12} [{bar}] {progress:5.1f}%")
         print(f"  Collected: {collected:,} / {target:,} docs")
         print(f"  File size: {file_size:.1f} MB")
         print(f"  Last update: {checkpoint.get('timestamp', 'N/A')}")
-    
+
     print("\n" + "="*80)
     print(f"TOTAL: {total_collected:,} / 1,000,000 docs ({total_collected/10000:.1f}%)")
-    
+
     # Estimate completion
     if total_collected > 0:
         # Assume constant rate
@@ -448,17 +461,18 @@ while True:
         remaining = 1000000 - total_collected
         hours_left = remaining / rate if rate > 0 else 0
         days_left = hours_left / 10  # 10 hours per day
-        
+
         print(f"Rate: {rate:.0f} docs/hour")
         print(f"ETA: {days_left:.1f} days ({hours_left/24:.1f} days 24/7)")
-    
+
     print("="*80)
     print("Press Ctrl+C to exit")
-    
+
     time.sleep(10)  # Update every 10 seconds
 ```
 
 **Run monitor:**
+
 ```bash
 source venv/bin/activate
 python3 monitor_progress.py
@@ -471,6 +485,7 @@ python3 monitor_progress.py
 ### 1. Tăng Tốc Độ Crawl
 
 **A. Parallel Thread Crawling:**
+
 ```python
 # Trong mỗi crawler, thay vì crawl tuần tự:
 from concurrent.futures import ThreadPoolExecutor
@@ -481,17 +496,18 @@ with ThreadPoolExecutor(max_workers=3) as executor:
 ```
 
 **B. Reuse Browser:**
+
 ```python
 # Thay vì mở/đóng browser mỗi page:
 class PersistentBrowser:
     def __init__(self):
         self.driver = setup_driver()
         self.page_count = 0
-        
+
     def get_page(self, url):
         self.driver.get(url)
         self.page_count += 1
-        
+
         # Restart browser mỗi 100 pages để tránh memory leak
         if self.page_count % 100 == 0:
             self.driver.quit()
@@ -501,11 +517,13 @@ class PersistentBrowser:
 ### 2. Giảm Resource Usage
 
 **A. Headless Mode:**
+
 ```python
 options.add_argument('--headless=new')  # No GUI
 ```
 
 **B. Disable Unnecessary Features:**
+
 ```python
 prefs = {
     'profile.default_content_settings': {'images': 2},  # No images
@@ -517,6 +535,7 @@ options.add_experimental_option('prefs', prefs)
 ### 3. Smart Scheduling
 
 **Daily Schedule:**
+
 ```
 22:00 - 23:00  Crawl warm-up (check for issues)
 23:00 - 07:00  Full speed crawling
@@ -525,6 +544,7 @@ options.add_experimental_option('prefs', prefs)
 ```
 
 **Weekend Boost:**
+
 ```
 Cuối tuần: Chạy 20h/ngày thay vì 10h
 → Có thể crawl gấp đôi
@@ -536,6 +556,7 @@ Cuối tuần: Chạy 20h/ngày thay vì 10h
 ## 🎯 KẾ HOẠCH 3 TUẦN
 
 ### Tuần 1 (10-16 Jan): Setup & Testing
+
 ```
 ✅ Day 1-2: Setup scripts, test crawlers
 ✅ Day 3-4: Fix bugs, optimize
@@ -543,6 +564,7 @@ Cuối tuần: Chạy 20h/ngày thay vì 10h
 ```
 
 ### Tuần 2 (17-23 Jan): Main Crawling
+
 ```
 ⬜ Chạy full 10h/ngày
 ⬜ Target: 450K docs (total 600K)
@@ -551,6 +573,7 @@ Cuối tuần: Chạy 20h/ngày thay vì 10h
 ```
 
 ### Tuần 3 (24-30 Jan): Final Push
+
 ```
 ⬜ Chạy full + thêm giờ nếu cần
 ⬜ Target: 400K docs (total 1M)
@@ -559,6 +582,7 @@ Cuối tuần: Chạy 20h/ngày thay vì 10h
 ```
 
 ### Tuần 4 (31 Jan - 6 Feb): Submission
+
 ```
 ⬜ Finalize cleaned data
 ⬜ Generate statistics
@@ -571,6 +595,7 @@ Cuối tuần: Chạy 20h/ngày thay vì 10h
 ## 🔧 TROUBLESHOOTING
 
 ### Issue 1: Crawler bị stop giữa chừng
+
 ```bash
 # Check logs
 tail -f night_crawler.log
@@ -580,6 +605,7 @@ python3 crawler_manager.py
 ```
 
 ### Issue 2: Memory quá cao
+
 ```bash
 # Check memory usage
 ps aux | grep python | awk '{print $6/1024 " MB - " $11}'
@@ -589,6 +615,7 @@ ps aux | grep python | awk '{print $6/1024 " MB - " $11}'
 ```
 
 ### Issue 3: Disk đầy
+
 ```bash
 # Check disk space
 df -h
@@ -600,6 +627,7 @@ gzip data/voz_data.jsonl
 ```
 
 ### Issue 4: IP bị block
+
 ```bash
 # Thêm delay dài hơn trong crawler
 # human_like_delay(5, 10)  # Thay vì 2-4
@@ -613,6 +641,7 @@ gzip data/voz_data.jsonl
 ## 📈 SUCCESS METRICS
 
 ### Daily Targets
+
 ```
 Day 1-7:   ~50K docs/tuần   (Setup phase)
 Day 8-14:  ~400K docs/tuần  (Main phase)
@@ -621,6 +650,7 @@ Day 22-28: ~100K + cleanup  (Buffer)
 ```
 
 ### Quality Metrics
+
 ```
 ✓ Word count: >50 words per doc
 ✓ Uniqueness: <5% duplicates
@@ -633,12 +663,14 @@ Day 22-28: ~100K + cleanup  (Buffer)
 ## 💡 PRO TIPS
 
 1. **Backup mỗi ngày:**
+
    ```bash
    # Cron job backup
    0 9 * * * rsync -av /home/kource/Documents/SEG301/data/ /backup/seg301/
    ```
 
 2. **Alert khi crawler stop:**
+
    ```python
    # Gửi email/Telegram notification
    if not any(p.is_alive() for p in processes):
@@ -646,12 +678,14 @@ Day 22-28: ~100K + cleanup  (Buffer)
    ```
 
 3. **Log rotation:**
+
    ```bash
    # Tránh log file quá lớn
    mv crawler.log crawler.log.old
    ```
 
 4. **Test trước khi sleep:**
+
    - Chạy test 30 phút trước khi đi ngủ
    - Đảm bảo không có lỗi
    - Check progress dashboard
@@ -666,6 +700,7 @@ Day 22-28: ~100K + cleanup  (Buffer)
 ## 📞 SUPPORT
 
 Nếu gặp issue:
+
 1. Check logs: `tail -f night_crawler.log`
 2. Check progress: `python3 monitor_progress.py`
 3. Check process: `ps aux | grep crawler`

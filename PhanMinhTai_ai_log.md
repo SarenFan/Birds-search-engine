@@ -921,3 +921,242 @@ ETA: 8.5 days
 - ⬜ Implementation pending (Next session)
 - 🎯 Ready to start crawling Tuần 2
 
+
+---
+
+### Session 8: Cloud Crawling Strategy (Lightning.ai & Alternatives)
+
+**User:** tôi có thể chạy trên lightning.ai treo máy full-time để crawl rồi lưu và tải data về máy không?
+
+**AI Analysis:**
+
+**User Intent:**
+- Muốn tránh phải chạy máy cá nhân 24/7
+- Tìm giải pháp cloud để crawl liên tục
+- Cần khả năng download data về máy sau khi xong
+
+**AI Solution:**
+
+✅ **CÓ THỂ** sử dụng cloud platforms, nhưng có options tốt hơn Lightning.ai
+
+### PHÂN TÍCH CÁC PLATFORM
+
+**1. Google Colab (⭐ KHUYẾN NGHỊ NHẤT)**
+
+**Free Tier:**
+- CPU: 2 cores, RAM: 12GB
+- Timeout: 12h/session (có thể extend)
+- Storage: 100GB Google Drive
+- Cost: $0
+
+**Colab Pro ($9.99/tháng):**
+- Timeout: 24h/session
+- RAM: 25GB
+- Background execution (không cần mở browser)
+- Priority access
+
+**Ưu điểm:**
+- 🟢 Tích hợp Google Drive (auto save)
+- 🟢 Setup dễ (Jupyter notebook)
+- 🟢 Miễn phí hoặc rẻ
+- 🟢 Stable và phổ biến
+
+**2. Kaggle**
+- 4 cores, 16GB RAM
+- 9h/session, 30h/tuần
+- Hoàn toàn miễn phí
+- Dataset management tốt
+
+**3. Lightning.ai**
+- Phức tạp hơn Colab/Kaggle
+- Documentation ít cho web scraping
+- Không nổi bật cho use case này
+
+### KHUYẾN NGHỊ CHIẾN LƯỢC
+
+**Option A: Colab Pro (FASTEST - 4-5 ngày)**
+```
+Cost: $9.99 cho 1 tháng
+Timeline:
+- Day 1: 24h × 15K docs/h = 360K docs
+- Day 2: 24h × 15K docs/h = 360K docs
+- Day 3: 24h × 15K docs/h = 360K docs
+Total: ~1M docs trong 3-4 ngày ✓
+```
+
+**Option B: Colab Free + Session Rotation (FREE - 7-10 ngày)**
+```
+Cost: $0
+Strategy:
+- Mỗi 10-12h: Save checkpoint + restart
+- 7-8 sessions × 10h = 70-80h
+- Total: 1M docs trong 7-10 ngày
+```
+
+**Option C: Hybrid (Colab + Local Night Crawl)**
+```
+Week 1-2: Colab Free (600K docs)
+Week 2-3: Local night (400K docs)
+Total: 1M docs trong 2-3 tuần
+Risk: Lowest (2 sources)
+```
+
+### SO SÁNH VỚI LOCAL
+
+| Tiêu chí        | Colab Pro | Colab Free | Local Night |
+|-----------------|-----------|------------|-------------|
+| Thời gian       | 4-5 ngày  | 7-10 ngày  | 21 ngày     |
+| Chi phí         | $10       | $0         | ~$5 điện    |
+| Effort          | Thấp      | Trung bình | Trung bình  |
+| Máy cá nhân     | Free      | Free       | Bận mỗi đêm |
+| **TỔNG ĐIỂM**   | **9/10**  | **7/10**   | **6/10**    |
+
+### HƯỚNG DẪN SETUP COLAB
+
+**Code Template Created:**
+```python
+# Cell 1: Install dependencies
+!pip install selenium undetected-chromedriver beautifulsoup4 jsonlines
+
+# Cell 2: Mount Google Drive
+from google.colab import drive
+drive.mount('/content/drive')
+
+# Cell 3: Clone repository
+!git clone https://github.com/SarenFan/Birds-search-engine.git
+
+# Cell 4: Run crawler (lưu trực tiếp vào Drive)
+crawler = ImprovedVozCrawler(
+    output_file='/content/drive/MyDrive/SEG301_Data/voz_data.jsonl',
+    checkpoint_file='/content/drive/MyDrive/SEG301_Checkpoints/voz_checkpoint.json',
+    max_docs=400000
+)
+
+# Cell 5: Download về máy (sau khi xong)
+# Option 1: Qua Google Drive UI
+# Option 2: Dùng rclone (fast)
+# Option 3: Python API
+```
+
+**Keep-Alive Script (Free Tier):**
+```javascript
+// Paste vào Console (F12) để giữ session
+function KeepAlive() {
+    document.querySelector("colab-connect-button").click();
+}
+setInterval(KeepAlive, 60000);
+```
+
+### STORAGE & DOWNLOAD
+
+**Data Flow:**
+1. Crawler chạy trên Colab
+2. Auto save → Google Drive mỗi 1000 docs
+3. Checkpoint update real-time
+4. Download về máy sau khi xong
+
+**Download Options:**
+- **UI:** Click download trên Google Drive
+- **rclone:** `rclone copy gdrive:SEG301_Data ./data/ --progress`
+- **Python API:** `files.download('/path/to/file')`
+
+### DECISION MATRIX
+
+**Nếu có $10 budget:**
+→ ✅ **Colab Pro** (xong nhanh, không stress)
+
+**Nếu free only:**
+→ ✅ **Colab Free + Local Hybrid** (cân bằng tốt)
+
+**Nếu không gấp:**
+→ ✅ **Local Night Crawl** (đã thiết kế ở Session 7)
+
+### PRO TIPS
+
+1. **Multiple Accounts:**
+   - Tạo 2-3 Google accounts
+   - Mỗi account 1 crawler
+   - 2x-3x faster
+
+2. **Kaggle + Colab Combo:**
+   - Colab: Voz + TinhTe
+   - Kaggle: Spiderum + Otofun  
+   - Parallel crawling
+
+3. **Monitor từ Phone:**
+   - Google Drive mobile app
+   - Check checkpoint files anywhere
+   - Peace of mind
+
+### TECHNICAL CONSIDERATIONS
+
+**Colab Advantages for Crawling:**
+- ✅ Different IP each session (tránh block)
+- ✅ Fast internet (~100Mbps)
+- ✅ No local resource usage
+- ✅ Auto backup to Drive
+
+**Potential Issues:**
+- ⚠️ 12h timeout (free) → Use rotation
+- ⚠️ Need keep-alive script
+- ⚠️ Colab Pro required for background execution
+
+### FILES CREATED
+
+**Documentation:**
+- `docs/Cloud_Crawling_Strategy.md` - Complete cloud guide (3000+ words)
+
+**Includes:**
+- Platform comparison (Colab, Kaggle, Lightning.ai, AWS)
+- Step-by-step Colab setup
+- Code templates
+- Keep-alive scripts
+- Download strategies
+- Cost-benefit analysis
+- Decision matrix
+- Troubleshooting guide
+
+### RECOMMENDATION SUMMARY
+
+**BEST SOLUTION cho bạn:**
+```
+1. Subscribe Colab Pro ($10) - 1 tháng
+2. Setup notebook (15 phút)
+3. Run crawler 24/7 (4-5 ngày)
+4. Download về máy qua Google Drive
+5. Cancel subscription sau khi xong
+6. Save 2 tuần time + zero stress
+
+ROI: Excellent! $10 để tiết kiệm 2 tuần là quá đáng
+```
+
+**FREE ALTERNATIVE:**
+```
+1. Use Colab Free với session rotation
+2. Mỗi 10h restart một lần
+3. 7-8 sessions = 1M docs trong 7-10 ngày
+4. Combine với local night crawl nếu cần faster
+```
+
+---
+
+**Answer to Question:**
+> "tôi có thể chạy trên lightning.ai treo máy full-time để crawl rồi lưu và tải data về máy không?"
+
+✅ **CÓ**, nhưng **Google Colab** tốt hơn Lightning.ai cho use case này
+
+✅ **Colab Pro ($10):** Xong trong 4-5 ngày, không cần lo máy
+
+✅ **Colab Free:** Xong trong 7-10 ngày, hoàn toàn miễn phí
+
+✅ **Data:** Auto save Google Drive, download dễ dàng
+
+🎯 **Next Action:** Setup Colab notebook và test với 100 docs ngay hôm nay!
+
+**Status:**
+- ✅ Cloud strategy analyzed
+- ✅ Platform comparison completed
+- ✅ Implementation guide created
+- ⬜ Pending: Setup Colab notebook (Next session)
+- 🎯 Ready to implement
+
