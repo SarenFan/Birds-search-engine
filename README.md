@@ -1,7 +1,6 @@
-# SEG301 - Social Listening Search Engine
+# Birds Search Engine - SEG301 Social Listening
 
 ## Thông tin nhóm
-
 - **Chủ đề**: Social Listening (Lắng nghe Mạng xã hội)
 - **Nguồn dữ liệu**: Voz (F17/F33), TinhTe, Otofun, Spiderum
 - **Mục tiêu**: Thu thập và xử lý 1.000.000 documents
@@ -16,6 +15,7 @@ source venv/bin/activate  # Linux/Mac
 
 # Cài đặt dependencies
 pip install -r requirements.txt
+pip install brotli  # For decompressing web responses
 ```
 
 ## Cấu trúc dự án
@@ -33,14 +33,13 @@ SEG301-Project/
 ```
 
 ## Link Dataset đầy đủ
-
 [Sẽ cập nhật sau khi crawl xong - Upload lên Google Drive]
 
 ## Tiến độ
 
 ### Milestone 1: Data Acquisition (Tuần 1-4)
-
 - [x] Setup project structure
+- [x] Implement crawler architecture
 - [ ] Crawl Voz (F17/F33)
 - [ ] Crawl TinhTe
 - [ ] Crawl Otofun
@@ -49,13 +48,11 @@ SEG301-Project/
 - [ ] Storage optimization
 
 ### Milestone 2: Core Search Engine (Tuần 5-7)
-
 - [ ] SPIMI implementation
 - [ ] BM25 ranking
 - [ ] Console application
 
 ### Milestone 3: Final Product (Tuần 8-10)
-
 - [ ] Vector Search integration
 - [ ] Web interface
 - [ ] Evaluation & Testing
