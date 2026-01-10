@@ -71,18 +71,22 @@ class TestCrawler100K:
                 headless=True
             )
 
+            # Create driver inside each process to avoid pickle issues
             # Use system ChromeDriver on Lightning.ai
-            driver = SeleniumCrawler(headless=True, driver_path="/usr/bin/chromedriver")
+            from src.crawler.selenium_utils import SeleniumCrawler
+            driver = SeleniumCrawler(headless=True, driver_path=f"{Path.home()}/.local/bin/chromedriver")
 
-            # Crawl F17 only (most active forum)
-            crawler.crawl_forum(
-                crawler=driver,
-                forum_name="F17-OffTopic-Test",
-                forum_url="https://voz.vn/f/chuyen-tro-linh-tinh.17/",
-                max_pages=200  # Limit pages for test
-            )
-
-            driver.close()
+            try:
+                # Crawl F17 only (most active forum)
+                crawler.crawl_forum(
+                    crawler=driver,
+                    forum_name="F17-OffTopic-Test",
+                    forum_url="https://voz.vn/f/chuyen-tro-linh-tinh.17/",
+                    max_pages=200  # Limit pages for test
+                )
+            finally:
+                if driver and driver.driver:
+                    driver.driver.quit()
 
             elapsed = time.time() - self.start_time
             print(f"\n✅ VOZ Test COMPLETED!")
@@ -107,15 +111,18 @@ class TestCrawler100K:
                 headless=True
             )
 
-            driver = SeleniumCrawler(headless=True)
+            from src.crawler.selenium_utils import SeleniumCrawler
+            driver = SeleniumCrawler(headless=True, driver_path=f"{Path.home()}/.local/bin/chromedriver")
 
-            crawler.crawl_forum(
-                crawler=driver,
-                forum_url="https://tinhte.vn/forums/",
-                max_pages=150
-            )
-
-            driver.close()
+            try:
+                crawler.crawl_forum(
+                    crawler=driver,
+                    forum_url="https://tinhte.vn/forums/",
+                    max_pages=150
+                )
+            finally:
+                if driver and driver.driver:
+                    driver.driver.quit()
 
             elapsed = time.time() - self.start_time
             print(f"\n✅ TinhTe Test COMPLETED!")
@@ -140,15 +147,18 @@ class TestCrawler100K:
                 headless=True
             )
 
-            driver = SeleniumCrawler(headless=True)
+            from src.crawler.selenium_utils import SeleniumCrawler
+            driver = SeleniumCrawler(headless=True, driver_path=f"{Path.home()}/.local/bin/chromedriver")
 
-            # Crawl main categories
-            crawler.crawl_category(
-                crawler=driver,
-                category_url="https://spiderum.com/khoa-hoc"
-            )
-
-            driver.close()
+            try:
+                # Crawl main categories
+                crawler.crawl_category(
+                    crawler=driver,
+                    category_url="https://spiderum.com/khoa-hoc"
+                )
+            finally:
+                if driver and driver.driver:
+                    driver.driver.quit()
 
             elapsed = time.time() - self.start_time
             print(f"\n✅ Spiderum Test COMPLETED!")
