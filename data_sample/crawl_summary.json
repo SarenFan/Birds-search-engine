@@ -1,0 +1,44 @@
+{
+  "test_date": "2026-01-10T18:53:12.061409",
+  "test_config": {
+    "docs_per_source": 25,
+    "total_target": 100
+  },
+  "results": [
+    {
+      "source": "voz",
+      "docs_collected": 0,
+      "duration": 0.891237,
+      "docs_per_second": 0.0
+    },
+    {
+      "source": "tinhte",
+      "docs_collected": 0,
+      "duration": 2.321066,
+      "docs_per_second": 0.0
+    },
+    {
+      "source": "otofun",
+      "docs_collected": 0,
+      "duration": 2.403034,
+      "docs_per_second": 0.0
+    },
+    {
+      "source": "spiderum",
+      "docs_collected": 0,
+      "duration": 0.561564,
+      "docs_per_second": 0.0
+    }
+  ],
+  "total": {
+    "docs_collected": 0,
+    "duration_seconds": 2.405542,
+    "avg_speed": 0.0
+  },
+  "projection": {
+    "target_docs": 1000000,
+    "estimated_seconds": 0,
+    "estimated_hours": 0,
+    "estimated_days": 0
+  }
+}
