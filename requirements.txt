@@ -20,3 +20,6 @@ jsonlines>=4.0.0
 # Utils
 tqdm>=4.66.0
 python-dotenv>=1.0.0
+
+# Lightning.ai Cloud (optional - for local testing)
+# lightning-cloud>=0.6.0
