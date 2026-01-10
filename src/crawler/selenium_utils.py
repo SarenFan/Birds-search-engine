@@ -48,6 +48,13 @@ class SeleniumCrawler:
         options.add_argument('--disable-gpu')
         options.add_argument(f'user-agent={self.ua.random}')
 
+        # Additional headless/cloud environment flags
+        options.add_argument('--disable-software-rasterizer')
+        options.add_argument('--disable-extensions')
+        options.add_argument('--disable-setuid-sandbox')
+        options.add_argument('--remote-debugging-port=9222')
+        options.add_argument('--window-size=1920,1080')
+
         # Additional privacy/anti-tracking
         options.add_argument('--disable-web-security')
         options.add_argument('--allow-running-insecure-content')
