@@ -5,6 +5,7 @@
 ### Files Created:
 
 1. **`lightning_job_crawler.py`** (13KB)
+
    - Production crawler manager
    - Sequential mode (safe, stable)
    - Parallel mode (fast, needs resources)
@@ -12,6 +13,7 @@
    - Progress monitoring
 
 2. **`docs/Lightning_Actual_Usage_Guide.md`** (10KB)
+
    - Complete step-by-step guide
    - Setup instructions cho Lightning Studios
    - Configuration options
@@ -19,11 +21,13 @@
    - Download strategies
 
 3. **`docs/Lightning_AI_Setup_Guide.md`** (OLD - Reference only)
+
    - Initial research documentation
    - Pricing analysis
    - SDK examples
 
 4. **`quick_start_lightning.sh`**
+
    - Automated setup script
    - Interactive prompts
    - One-command deployment
@@ -180,16 +184,18 @@ FREE Studio tự động restart sau 4 giờ. **Không vấn đề!**
 
 1. **Checkpoint System** - Tự động lưu progress mỗi 30s
 2. **Manual Restart** - Chỉ cần rerun script sau khi Studio restart:
+
    ```bash
    cd ~/Birds-search-engine
    nohup python3 lightning_job_crawler.py --mode sequential > crawler.log 2>&1 &
    ```
 
 3. **Auto-Resume Script** (Optional):
+
    ```bash
    # Setup crontab để tự động restart
    crontab -e
-   
+
    # Add line:
    */5 * * * * ~/auto_resume.sh >> ~/auto_resume.log 2>&1
    ```
@@ -199,11 +205,13 @@ FREE Studio tự động restart sau 4 giờ. **Không vấn đề!**
 **MỨC ĐỘ QUAN TRỌNG: ⚠️⚠️⚠️ CỰC KỲ QUAN TRỌNG!**
 
 Nếu không enable Background Execution:
+
 - ❌ Crawler sẽ dừng khi đóng tab browser
 - ❌ Không thể "fire and forget"
 - ❌ Phải giữ browser mở 24/7
 
 Nếu enable Background Execution:
+
 - ✅ Đóng browser vẫn chạy ngầm
 - ✅ Tắt máy tính vẫn OK
 - ✅ True "fire and forget"
@@ -276,6 +284,7 @@ ROI:
 ### Full Guides:
 
 1. **`docs/Lightning_Actual_Usage_Guide.md`**
+
    - Complete setup instructions
    - All configuration options
    - Troubleshooting
@@ -330,7 +339,7 @@ ROI:
 
 ---
 
-**Created:** 2026-01-10  
-**Author:** Phan Minh Tai  
-**Status:** ✅ PRODUCTION READY  
+**Created:** 2026-01-10
+**Author:** Phan Minh Tai
+**Status:** ✅ PRODUCTION READY
 **Next Action:** Tạo Lightning.ai account và deploy!

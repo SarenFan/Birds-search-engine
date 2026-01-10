@@ -17,8 +17,9 @@ logger = logging.getLogger(__name__)
 class SeleniumCrawler:
     """Base class for Selenium-based web crawling"""
 
-    def __init__(self, headless: bool = True):
+    def __init__(self, headless: bool = True, driver_path: str = None):
         self.headless = headless
+        self.driver_path = driver_path  # Optional: custom ChromeDriver path
         self.driver = None
         self.ua = UserAgent()
         self.setup_driver()  # Initialize driver immediately
@@ -63,8 +64,13 @@ class SeleniumCrawler:
         # options.add_experimental_option('useAutomationExtension', False)
 
         try:
-            self.driver = uc.Chrome(options=options)
-            logger.info("Selenium driver initialized successfully")
+            # Use custom driver path if provided
+            if self.driver_path:
+                self.driver = uc.Chrome(options=options, driver_executable_path=self.driver_path)
+                logger.info(f"Selenium driver initialized with custom path: {self.driver_path}")
+            else:
+                self.driver = uc.Chrome(options=options)
+                logger.info("Selenium driver initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize driver: {e}")
             raise
