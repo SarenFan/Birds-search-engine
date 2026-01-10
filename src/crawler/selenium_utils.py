@@ -21,6 +21,7 @@ class SeleniumCrawler:
         self.headless = headless
         self.driver = None
         self.ua = UserAgent()
+        self.setup_driver()  # Initialize driver immediately
 
     def __enter__(self):
         """Context manager entry"""
@@ -85,6 +86,8 @@ class SeleniumCrawler:
     def get_page(self, url: str, wait_time: int = 10) -> str:
         """Get page content with wait for loading"""
         try:
+            if not self.driver:
+                self.setup_driver()
             self.driver.get(url)
             self.human_like_delay(2, 4)
 
@@ -122,6 +125,17 @@ class SeleniumCrawler:
             return self.driver.find_elements(by, value)
         except NoSuchElementException:
             return []
+
+    def close(self):
+        """Close the browser and clean up"""
+        if self.driver:
+            try:
+                self.driver.quit()
+                logger.info("Browser closed successfully")
+            except Exception as e:
+                logger.error(f"Error closing browser: {e}")
+            finally:
+                self.driver = None
 
     def click_element_safe(self, element):
         """Safely click element with human-like behavior"""

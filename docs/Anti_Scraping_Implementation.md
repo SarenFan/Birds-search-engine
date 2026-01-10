@@ -3,11 +3,13 @@
 ## 📅 Date: January 10, 2026
 
 ## 🎯 Objective
+
 Implement robust web crawling capabilities to bypass anti-scraping measures on Vietnamese social media platforms (Voz, TinhTe, Otofun, Spiderum).
 
 ## ✅ Completed Work
 
 ### 1. **Selenium Integration**
+
 - Installed `undetected-chromedriver` for advanced bot detection bypass
 - Implemented `SeleniumCrawler` base class with anti-detection features
 - Added `fake-useragent` for dynamic user agent rotation
@@ -15,6 +17,7 @@ Implement robust web crawling capabilities to bypass anti-scraping measures on V
 ### 2. **Anti-Scraping Techniques Implemented**
 
 #### Browser Automation
+
 ```python
 - Headless Chrome with anti-detection flags
 - Disabled automation indicators
@@ -23,6 +26,7 @@ Implement robust web crawling capabilities to bypass anti-scraping measures on V
 ```
 
 #### Human-Like Behavior
+
 ```python
 - Random delays (1-3 seconds between actions)
 - Page scrolling simulation
@@ -31,6 +35,7 @@ Implement robust web crawling capabilities to bypass anti-scraping measures on V
 ```
 
 #### Request Management
+
 ```python
 - Retry logic with exponential backoff
 - Rate limiting controls
@@ -41,6 +46,7 @@ Implement robust web crawling capabilities to bypass anti-scraping measures on V
 ### 3. **Improved Crawlers Created**
 
 #### Files Structure:
+
 ```
 src/crawler/
 ├── selenium_utils.py          # Base Selenium crawler class
@@ -51,6 +57,7 @@ src/crawler/
 ```
 
 ### 4. **Debug & Testing Tools**
+
 - `debug_page_structure.py`: Analyze page structure and selectors
 - `test_selenium_crawlers.py`: Test runner for all crawlers
 - HTML capture for offline analysis
@@ -60,11 +67,13 @@ src/crawler/
 ### Key Features:
 
 1. **undetected-chromedriver**
+
    - Automatically patches Chrome/Chromedriver
    - Removes automation signatures
    - Bypasses most bot detection
 
 2. **Dynamic Selectors**
+
    - Multiple fallback strategies
    - Adaptive parsing based on page structure
    - Debug mode for selector discovery
@@ -77,21 +86,25 @@ src/crawler/
 ## 📊 Testing Results
 
 ### Browser Initialization: ✅ Success
+
 - Chrome driver loads correctly
 - Anti-detection measures active
 - Pages accessible
 
-### Page Loading: ✅ Success  
+### Page Loading: ✅ Success
+
 - Bypassed initial blocking
 - JavaScript content loaded
 - Cookies maintained
 
 ### Data Extraction: ⚠️ In Progress
+
 - Selectors identified via debug tool
 - Need site-specific refinement
 - Structure analysis complete
 
 ### Example from Voz:
+
 ```
 ✓ Page loaded: 167KB HTML
 ✓ Found 23 thread items
@@ -101,16 +114,19 @@ src/crawler/
 ## 🚧 Current Challenges
 
 ### 1. **Selector Optimization**
+
 - Each site has unique HTML structure
 - Need to fine-tune CSS selectors
 - Dynamic content requires wait strategies
 
 ### 2. **Authentication**
+
 - Some content may require login
 - Need to implement session management
 - Cookie persistence across runs
 
 ### 3. **Rate Limiting**
+
 - Balance between speed and detection
 - Need proxy rotation for scale
 - Implement adaptive delays
@@ -118,18 +134,21 @@ src/crawler/
 ## 📈 Next Steps
 
 ### Immediate (Week 1-2):
+
 1. ✅ Fine-tune selectors for each website
 2. ⬜ Implement login/authentication if needed
 3. ⬜ Test with larger datasets (100+ docs per site)
 4. ⬜ Measure actual crawling speeds
 
 ### Short-term (Week 2-3):
+
 1. ⬜ Add proxy rotation for IP distribution
 2. ⬜ Implement distributed crawling architecture
 3. ⬜ Optimize for 1M documents target
 4. ⬜ Data cleaning pipeline
 
 ### Medium-term (Week 3-4):
+
 1. ⬜ Vietnamese text normalization (teencode, slang)
 2. ⬜ Duplicate detection and removal
 3. ⬜ Storage optimization (JSONL/Parquet)
@@ -140,16 +159,19 @@ src/crawler/
 ### For Scaling to 1M Documents:
 
 1. **Infrastructure**
+
    - Use multiple machines/IPs
    - Implement queue-based architecture
    - Consider cloud services (AWS, GCP)
 
 2. **Anti-Detection**
+
    - Residential proxies recommended
    - Rotate headers and cookies
    - Randomize crawling patterns
 
 3. **Performance**
+
    - Parallel processing (4-8 instances)
    - Optimize wait times
    - Cache frequently accessed data
@@ -162,6 +184,7 @@ src/crawler/
 ## 📚 Technical Stack
 
 ### Core Dependencies:
+
 ```
 selenium>=4.16.0
 undetected-chromedriver>=3.5.0
@@ -172,6 +195,7 @@ brotli>=1.0.0
 ```
 
 ### Tools:
+
 - Chrome/Chromium browser
 - ChromeDriver (auto-managed)
 - Python 3.12+

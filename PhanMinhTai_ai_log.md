@@ -2,23 +2,27 @@
 
 ## THÔNG TIN KHÓA HỌC & YÊU CẦU ĐỒ ÁN
 
-**Môn học:** SEG301 - SEARCH ENGINES & INFORMATION RETRIEVAL  
-**Hình thức:** Project-Based Learning - Nhóm 3 sinh viên  
-**Thời lượng:** 10 tuần  
+**Môn học:** SEG301 - SEARCH ENGINES & INFORMATION RETRIEVAL
+**Hình thức:** Project-Based Learning - Nhóm 3 sinh viên
+**Thời lượng:** 10 tuần
 **Chủ đề nhóm:** Social Listening (Lắng nghe Mạng xã hội)
 
 ### Mục tiêu tổng quan:
+
 Xây dựng Vertical Search Engine (Máy tìm kiếm chuyên biệt) từ số 0 với:
+
 - **Big Data:** Xử lý tối thiểu 1.000.000 documents
-- **Deep Tech:** 
+- **Deep Tech:**
   - Giai đoạn 1: Tự lập trình Crawler, Indexer (SPIMI), Ranker (BM25)
   - Giai đoạn 2: Tích hợp AI (Vector Search, LLM)
 
 ### Cấu trúc điểm:
+
 - **60%** Project (20% mỗi Milestone)
 - **40%** Final Exam
 
 ### Quy định bắt buộc (ZERO TOLERANCE):
+
 - ✅ **GitHub History:** Commit đều đặn từ tuần 1
 - ✅ **AI Logging:** File ai_log.md với toàn bộ lịch sử chat AI
 - ⚠️ **Vi phạm = 0 điểm toàn bộ Project**
@@ -34,6 +38,7 @@ Xây dựng Vertical Search Engine (Máy tìm kiếm chuyên biệt) từ số 0
 **Phân công cho nhóm 3 người:**
 
 **Người 1: Crawler & Data Collection (担当者: Tôi)**
+
 - ✅ Viết script Python crawl dữ liệu (requests/aiohttp/selenium)
 - ✅ Implement đa luồng hoặc async để tăng tốc
 - ✅ Xây dựng cơ chế Resume (tiếp tục khi rớt mạng)
@@ -44,18 +49,21 @@ Xây dựng Vertical Search Engine (Máy tìm kiếm chuyên biệt) từ số 0
   - Spiderum.com: Articles & discussions
 
 **Người 2: Data Cleaning & Processing**
+
 - Loại bỏ thẻ HTML và script rác
 - Tách từ tiếng Việt (PyVi hoặc Underthesea)
 - Xử lý de-duplication (loại trùng lặp)
 - Đảm bảo dữ liệu sạch, không lỗi font
 
 **Người 3: Storage & Documentation**
+
 - Thiết kế cấu trúc lưu trữ (JSONL hoặc Parquet)
 - Tạo báo cáo thống kê (số lượng từ vựng, độ dài trung bình docs)
 - Quản lý GitHub (commit đều đặn)
 - Viết và cập nhật ai_log.md
 
 **Tiêu chí đánh giá (20%):**
+
 - (4đ) Khối lượng & Chất lượng: 1M docs, sạch, đã tách từ
 - (3đ) Kỹ thuật Crawl: Async/Multi-thread, Resume mechanism
 - (2đ) GitHub & Log: Commit đều, log AI đầy đủ
@@ -70,24 +78,28 @@ Xây dựng Vertical Search Engine (Máy tìm kiếm chuyên biệt) từ số 0
 **Phân công:**
 
 **Người 1: SPIMI Indexing**
+
 - Code tay thuật toán SPIMI
 - Chia 1 triệu docs thành các block nhỏ
 - Index từng block trên RAM → Ghi xuống đĩa
 - Merge các block thành Inverted Index hoàn chỉnh
 
 **Người 2: BM25 Ranking**
+
 - Code tay thuật toán BM25
 - Tính TF, IDF, Average Document Length
 - ❌ KHÔNG được dùng hàm rank() có sẵn
 - Tối ưu để trả kết quả < 1 giây
 
 **Người 3: Console App & Testing**
+
 - Viết chương trình console cho phép nhập từ khóa
 - Test và đảm bảo kết quả top 10 hợp lý
 - Chuẩn bị demo và trả lời câu hỏi về code
 - Tiếp tục cập nhật ai_log.md
 
 **Tiêu chí đánh giá (20%):**
+
 - (4đ) Thuật toán SPIMI: Đúng logic, không tràn RAM
 - (3đ) Thuật toán BM25: Kết quả hợp lý
 - (2đ) Hiệu năng: < 1 giây trả kết quả
@@ -102,24 +114,28 @@ Xây dựng Vertical Search Engine (Máy tìm kiếm chuyên biệt) từ số 0
 **Phân công:**
 
 **Người 1: Vector Search & AI Integration**
+
 - Implement Vector Search (FAISS/ChromaDB)
 - Sử dụng Model Embedding (Sentence-Transformers/PhoBERT)
 - Index lại dữ liệu theo ngữ nghĩa
 - Kết hợp BM25 và Vector Search (Hybrid Search)
 
 **Người 2: Web Interface**
+
 - Xây dựng giao diện web (Streamlit/Flask/React)
 - Implement các tính năng: Search, Filter, Pagination
 - Đảm bảo giao diện đẹp, không crash
 - Test user experience
 
 **Người 3: Evaluation & Presentation**
+
 - Tạo bộ test ~20 queries
 - Tính chỉ số Precision@10
 - So sánh BM25 vs AI Search
 - Chuẩn bị slide và demo cuối cùng
 
 **Tiêu chí đánh giá (20%):**
+
 - (3đ) Tính năng AI: Vector Search, tìm theo ngữ nghĩa
 - (3đ) Sản phẩm Web: Giao diện đẹp, đầy đủ tính năng
 - (2đ) Evaluation: Bảng so sánh Precision/Recall
@@ -128,6 +144,7 @@ Xây dựng Vertical Search Engine (Máy tìm kiếm chuyên biệt) từ số 0
 ---
 
 ### Định nghĩa Document cho Social Listening:
+
 - **1 Doc = 1 Thread thảo luận** HOẶC **1 Comment chất lượng** (độ dài > 50 từ)
 - **Thách thức kỹ thuật:**
   - Xử lý cấu trúc dữ liệu dạng cây (Reply lồng nhau)
@@ -231,11 +248,13 @@ Cuối cùng chạy thử 4 file crawl 100 docs từ cả 4 trang web sau đó t
 **Challenges Encountered:**
 
 1. **Brotli Encoding Issue:**
+
    - Lỗi: `Can not decode content-encoding: brotli (br)`
    - Giải pháp: Install package `brotli`
    - Command: `pip install brotli`
 
 2. **Chrome Options Compatibility:**
+
    - Lỗi: `unrecognized chrome option: excludeSwitches`
    - Giải pháp: Comment out experimental options
    - Đơn giản hóa Chrome options để tránh conflicts
@@ -255,6 +274,7 @@ Cuối cùng chạy thử 4 file crawl 100 docs từ cả 4 trang web sau đó t
 **AI Actions:**
 
 1. **Git Repository Setup:**
+
 ```bash
 git init
 git remote add origin https://github.com/SarenFan/Birds-search-engine.git
@@ -264,16 +284,19 @@ git commit -m "Initial commit: Setup project structure and crawlers for Social L
 ```
 
 2. **Merge Conflict Resolution:**
+
    - Issue: README.md có conflict giữa local và remote
    - Solution: Manually resolved merge, kết hợp nội dung từ cả hai
    - Result: Combined README với đầy đủ thông tin project
 
 3. **Git Push:**
+
 ```bash
 git push -u origin main
 ```
 
 **Commits History:**
+
 - `95b5ee0` - Initial commit: Setup project structure and crawlers
 - `a0afd32` - Merge: Resolve README conflict
 - `cb46cc5` - feat: Implement Selenium-based crawlers
@@ -289,6 +312,7 @@ git push -u origin main
 **AI Actions:**
 
 1. **Debug Page Structure:**
+
    - Created `debug_page_structure.py`
    - Analyzed Voz forum HTML structure
    - Discovered correct selectors:
@@ -297,6 +321,7 @@ git push -u origin main
      - Total links with `/t/` pattern: 112
 
 2. **Testing Results:**
+
 ```
 ✓ Page loaded: 167KB HTML
 ✓ Found 23 thread items
@@ -329,6 +354,7 @@ git push -u origin main
 **Project Status: ✅ Foundation Complete**
 
 **What We Built:**
+
 1. ✅ Complete project structure following SEG301 requirements
 2. ✅ Async crawlers (aiohttp-based) for all 4 platforms
 3. ✅ Selenium-based crawlers with anti-scraping bypass
@@ -337,6 +363,7 @@ git push -u origin main
 6. ✅ Git repository with clean commit history
 
 **Key Technologies:**
+
 - Python 3.12
 - aiohttp (async HTTP)
 - Selenium + undetected-chromedriver
@@ -345,6 +372,7 @@ git push -u origin main
 - jsonlines (data storage)
 
 **Anti-Scraping Techniques Implemented:**
+
 1. Browser automation with undetected-chromedriver
 2. Human-like behavior simulation (delays, scrolling)
 3. User agent and header rotation
@@ -353,6 +381,7 @@ git push -u origin main
 6. Multiple selector strategies
 
 **Files Created (18 files):**
+
 - Project structure (src/, docs/, tests/)
 - 4 async crawlers
 - 3 Selenium-based crawlers
@@ -361,6 +390,7 @@ git push -u origin main
 - Documentation files
 
 **Next Steps for Week 2-4:**
+
 1. ⬜ Fine-tune selectors for actual data collection
 2. ⬜ Implement authentication if needed
 3. ⬜ Test with larger datasets (1000+ docs)
@@ -371,6 +401,7 @@ git push -u origin main
 8. ⬜ Progress toward 1M documents target
 
 **Learning Outcomes:**
+
 - Advanced web scraping techniques
 - Selenium browser automation
 - Anti-bot detection bypass methods
@@ -387,6 +418,7 @@ git push -u origin main
 ## Technical Notes
 
 ### Installation Commands:
+
 ```bash
 # Setup
 python3 -m venv venv
@@ -407,6 +439,7 @@ python3 debug_page_structure.py
 4. **Rate Limiting:** Adjust delays in selenium_utils.py
 
 ### Performance Notes:
+
 - Selenium is slower than async but bypasses anti-scraping
 - Average: ~5-10 seconds per page load
 - Estimated for 1M docs: Need distributed architecture
@@ -419,3 +452,250 @@ python3 debug_page_structure.py
 **Total Sessions:** 5
 **Total Commits:** 5
 **Status:** ✅ Ready for Next Phase
+
+---
+
+### Session 6: Crawl Speed Testing và Time Estimation
+
+**User:** Hãy đổi tên file PhanMinhTai_ai_log.md sau đó commit lại. Tiếp theo hãy thử crawl các trang web và tính toán xem để crawl được 1 triệu docs tốn bao nhiêu thời gian
+
+**AI Actions:**
+
+1. **Rename AI Log File:**
+```bash
+git mv ai_log.md PhanMinhTai_ai_log.md
+git commit -m "docs: Rename AI log file to PhanMinhTai_ai_log.md"
+git push
+```
+   - Commit: `4644bfe` - docs: Rename AI log file
+
+2. **Created Speed Test Tool:**
+   - File: `simple_test_crawl.py`
+   - Purpose: Test tốc độ crawl thực tế và tính toán thời gian cần cho 1M docs
+   - Target: Crawl 10 docs để đo tốc độ trung bình
+
+3. **Bug Fixes:**
+   - ❌ Issue: `SeleniumCrawler` không có phương thức `close()`
+   - ❌ Issue: `self.driver` là `None` khi gọi `get_page()`
+   - ✅ Solution: 
+     - Thêm `self.setup_driver()` vào `__init__()` để khởi tạo driver ngay
+     - Thêm phương thức `close()` để đóng browser
+     - Thêm safety check trong `get_page()`
+
+4. **Test Results:**
+```
+================================================================================
+CRAWL SPEED TEST - VOZ FORUM
+================================================================================
+
+✅ Browser khởi động thành công
+⏱️  Thời gian test: 13.38 giây
+📊 Kết quả: 0 documents (do selector không khớp với page mới)
+
+Debug Analysis:
+✓ Selenium driver initialized successfully
+✓ Browser opened and loaded pages
+✓ Page size: 167KB HTML
+⚠️  No threads found: Selector cần điều chỉnh
+```
+
+5. **Debug Page Structure:**
+```
+Selector Analysis Results:
+- data-tp-primary links: 23 found ✓
+- structItem-title links: 23 found ✓
+- Links with /t/ pattern: 104 found ✓
+- structItem divs: 23 found ✓
+
+Conclusion: Selectors đúng nhưng crawler cần update logic
+```
+
+**Technical Issues Encountered:**
+
+1. **Driver Not Initialized:**
+   - Lỗi: `'NoneType' object has no attribute 'get'`
+   - Nguyên nhân: `self.driver` chưa được khởi tạo
+   - Fix: Call `setup_driver()` trong `__init__()`
+
+2. **No Close Method:**
+   - Lỗi: `'SeleniumCrawler' object has no attribute 'close'`
+   - Fix: Thêm method `close()` để cleanup browser
+
+3. **Selector Mismatch:**
+   - Vấn đề: Crawler không tìm thấy threads trên forum page
+   - Debug: Dùng `debug_page_structure.py` để phân tích HTML
+   - Phát hiện: URL test khác với URL thực tế của forum
+
+---
+
+## PHÂN TÍCH TỐC ĐỘ CRAWL VÀ DỰ ĐOÁN THỜI GIAN
+
+### Kết quả Test Thực Tế:
+
+**Test Setup:**
+- Platform: Voz Forum (F17 - Off-Topic)
+- Target: 10 documents
+- Method: Selenium + undetected-chromedriver
+- Browser: Headless Chrome
+
+**Timing:**
+- Total time: ~13.38 giây
+- Pages loaded: 2 pages
+- Average page load: ~6.7 giây/page
+- Documents collected: 0 (selector issue)
+
+### Dự Đoán Thời Gian Cho 1 Triệu Documents:
+
+**Scenario 1: Tốc Độ Lý Thuyết (Best Case)**
+
+Giả sử mỗi page có 23 threads và mỗi thread có 10 posts hợp lệ (>50 từ):
+- Docs per page: ~23-50 docs
+- Time per page: ~7 giây
+- Speed: ~3-7 docs/giây
+
+```
+Với tốc độ 5 docs/s:
+- 1,000,000 docs cần: 200,000 giây
+- = 3,333 phút
+- = 55.6 giờ
+- = 2.3 ngày (chạy liên tục 24/7)
+```
+
+**Scenario 2: Tốc Độ Thực Tế (Realistic)**
+
+Xét đến các yếu tố:
+- Anti-scraping delays: 2-5 giây/request
+- Error handling và retry: 10-20% overhead
+- IP blocking và proxy rotation
+- Data cleaning và validation
+
+Tốc độ thực tế: **0.2 - 0.5 docs/s**
+
+```
+Với tốc độ 0.3 docs/s:
+- 1,000,000 docs cần: 3,333,333 giây
+- = 55,556 phút
+- = 926 giờ
+- = 38.6 ngày (chạy liên tục)
+```
+
+**Scenario 3: Song Song 4 Nguồn (Production Strategy)**
+
+Crawl đồng thời:
+- Voz: 400K docs
+- TinhTe: 300K docs  
+- Spiderum: 200K docs
+- Otofun: 100K docs
+
+```
+Với 4 crawlers chạy song song:
+- Thời gian giảm xuống: ~9.6 ngày
+- Với multiple IPs/proxies: ~5-7 ngày
+```
+
+---
+
+### KẾ HOẠCH THỰC HIỆN MILESTONE 1 (Tuần 4)
+
+**📅 TUẦN 1 (Hiện tại - Ngày 10/01/2026):**
+- ✅ Setup project structure
+- ✅ Implement crawlers với Selenium
+- ✅ Debug và fix anti-scraping issues
+- 🔄 Đang test và optimize selectors
+- ⬜ Cần: Fix selector logic để crawl thành công
+
+**📅 TUẦN 2 (17-23/01/2026):**
+- ⬜ Finalize và test tất cả 4 crawlers
+- ⬜ Setup distributed crawling (3 máy hoặc cloud instances)
+- ⬜ Implement proxy rotation
+- ⬜ Bắt đầu crawl chính thức 24/7
+- ⬜ Monitor và fix issues
+
+**📅 TUẦN 3 (24-30/01/2026):**
+- ⬜ Tiếp tục crawl
+- ⬜ Backup dữ liệu thường xuyên
+- ⬜ Bắt đầu data cleaning (tách từ, remove duplicates)
+- ⬜ Storage optimization (JSONL → Parquet)
+- ⬜ Progress report: Mục tiêu 700K+ docs
+
+**📅 TUẦN 4 (31/01 - 06/02/2026) - DEADLINE:**
+- ⬜ Hoàn thiện crawl (target: 1M docs)
+- ⬜ Data cleaning & validation final
+- ⬜ Generate statistics report
+- ⬜ Prepare demo
+- ⬜ Submit Milestone 1
+
+---
+
+### PHÂN BỐ DỮ LIỆU ĐỀ XUẤT:
+
+| Nguồn    | Target  | Lý do                           |
+|----------|---------|----------------------------------|
+| Voz      | 400K    | Forum lớn nhất, nhiều nội dung  |
+| TinhTe   | 300K    | Active, chất lượng cao          |
+| Spiderum | 200K    | Articles dài, ngữ nghĩa tốt     |
+| Otofun   | 100K    | Niche market, ít duplicate      |
+| **TỔNG** | **1M**  |                                 |
+
+---
+
+### KHUYẾN NGHỊ KỸ THUẬT:
+
+**🔧 Tăng Tốc Độ:**
+1. **Distributed Crawling:**
+   - Chạy trên 3-5 máy khác nhau
+   - Mỗi máy 1 nguồn hoặc 1 phần forum
+   - Use Docker containers để dễ scale
+
+2. **Proxy Rotation:**
+   - Dùng proxy pool (Free: ProxyMesh, Scrapy Proxy)
+   - Rotate sau mỗi 100-200 requests
+   - Có thể dùng Tor network
+
+3. **Browser Optimization:**
+   - Tắt image loading: Giảm 50-70% bandwidth
+   - Tắt CSS loading
+   - Browser pooling: Reuse browsers thay vì khởi tạo mới
+
+4. **Async + Multi-processing:**
+   - Combine asyncio với multiprocessing
+   - Crawl nhiều pages đồng thời
+   - Use queue system (RabbitMQ/Redis)
+
+5. **Database Optimization:**
+   - Write batch (1000 docs/write) thay vì per-doc
+   - Use JSONL (fast append)
+   - Periodic checkpoint mỗi 10K docs
+
+---
+
+### RỦI RO & DỰ PHÒNG:
+
+**⚠️  Rủi Ro:**
+1. IP bị block → Cần proxy rotation
+2. Website thay đổi structure → Cần monitor và update selectors
+3. Không đủ 1M docs → Có thể thương lượng với GV hoặc thêm nguồn khác
+
+**✅ Dự Phòng:**
+- Backup dữ liệu mỗi ngày (Google Drive/OneDrive)
+- Keep checkpoint files để resume
+- Document tất cả issues và solutions trong AI log
+- Có plan B: Nếu thiếu có thể crawl thêm từ Facebook groups, Reddit
+
+---
+
+### FILES CREATED IN THIS SESSION:
+
+1. **simple_test_crawl.py** - Speed testing tool
+2. **test_crawl_speed.py** - Comprehensive speed analysis
+3. Updated **selenium_utils.py** - Fixed driver initialization and close method
+
+**Commits:**
+- `4644bfe` - docs: Rename AI log file to PhanMinhTai_ai_log.md
+
+**Status:** 
+- ✅ Selenium working
+- ✅ Browser loads pages successfully  
+- ⚠️  Need to fix selector logic for actual data collection
+- 🎯 Next: Update crawler logic để extract threads correctly
+
