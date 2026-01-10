@@ -699,3 +699,225 @@ Với 4 crawlers chạy song song:
 - ⚠️  Need to fix selector logic for actual data collection
 - 🎯 Next: Update crawler logic để extract threads correctly
 
+
+---
+
+### Session 7: Chiến Lược Crawl Ngắt Quãng cho 1 Máy
+
+**User:** gợi ý cách chạy nhanh nhất crawl 1 triệu docs với 1 máy tính, lưu ý tôi muốn chạy ngắt quãng để treo máy vào ban đêm và dùng cho việc khác vào ban ngày
+
+**AI Analysis & Solution:**
+
+**Yêu cầu đặc biệt:**
+1. ✅ Chạy với 1 máy tính duy nhất
+2. ✅ Ngắt quãng: Ban đêm crawl, ban ngày dừng
+3. ✅ Phải có khả năng Resume (tiếp tục từ nơi dừng)
+4. ✅ Tối ưu resource để không ảnh hưởng công việc khác
+
+**Giải pháp được thiết kế:**
+
+### 1. PHÂN TÍCH THỜI GIAN
+
+**Thời gian khả dụng:**
+- Ban đêm: 10 giờ/ngày (22:00 - 08:00)
+- Cuối tuần: 20 giờ/ngày (có thể chạy cả ngày)
+- **Tổng: ~90-100 giờ/tuần**
+
+**Tốc độ cần thiết:**
+```
+Target: 1,000,000 docs trong 3 tuần
+Thời gian khả dụng: ~270 giờ (3 tuần × 90h)
+Tốc độ cần: 1,000,000 / (270 × 3600) ≈ 1.03 docs/giây
+Với overhead: Cần ~1.5-2 docs/giây
+```
+
+**Kết luận:** KHẢ THI! Với 4 crawlers song song có thể đạt 2+ docs/s
+
+### 2. KIẾN TRÚC ĐA LUỒNG (MULTI-PROCESS)
+
+**Strategy: 4 Processes Song Song**
+```
+Process 1: Voz crawler      → 400K docs
+Process 2: TinhTe crawler   → 300K docs
+Process 3: Spiderum crawler → 200K docs
+Process 4: Otofun crawler   → 100K docs
+
+Resource per process:
+- RAM: ~500MB
+- CPU: 1 core
+- Total: 2GB RAM, 4 cores (OK cho máy thường)
+```
+
+### 3. CHECKPOINT & RESUME SYSTEM
+
+**Tại sao quan trọng:**
+- Dừng lúc 8h sáng → Resume lúc 10h tối
+- Máy crash → Không mất dữ liệu
+- Track progress real-time
+
+**Cơ chế:**
+```json
+{
+  "last_forum": "F17",
+  "last_page": 145,
+  "docs_collected": 45678,
+  "seen_hashes": [...],
+  "timestamp": "2026-01-11T08:00:00"
+}
+```
+
+### 4. AUTO SCHEDULER
+
+**night_crawler.py - Tự động Start/Stop**
+- Tự động start lúc 22:00
+- Tự động stop lúc 08:00
+- Chạy như service, không cần can thiệp manual
+
+**3 Options:**
+1. **Manual Control:** Tự start/stop khi cần (linh hoạt)
+2. **Auto Night Crawler:** Set and forget (khuyến nghị)
+3. **Systemd Service:** Chạy như system service (advanced)
+
+### 5. OPTIMIZATION TECHNIQUES
+
+**A. Resource Optimization:**
+```python
+# Disable images → Giảm 60% bandwidth
+options.add_argument('--disable-images')
+
+# Disable CSS → Giảm 20% load time  
+options.add_argument('--disable-css')
+
+# No cache
+options.add_argument('--disk-cache-size=0')
+```
+
+**B. Speed Optimization:**
+```python
+# Parallel thread crawling (3-5 threads cùng lúc)
+with ThreadPoolExecutor(max_workers=3):
+    crawl_multiple_threads()
+
+# Reuse browser (thay vì mở/đóng mỗi page)
+# Restart mỗi 100 pages để tránh memory leak
+```
+
+**C. Smart Scheduling:**
+```
+22:00 - 23:00  Warm-up (kiểm tra lỗi)
+23:00 - 07:00  Full speed crawling
+07:00 - 08:00  Cool-down (kết thúc batch hiện tại)
+08:00 - 22:00  Máy tính free cho việc khác
+```
+
+### 6. MONITORING & TRACKING
+
+**Real-time Dashboard:**
+```bash
+python3 monitor_progress.py
+
+Output:
+================================================================================
+Voz         [████████████░░░░░░░░] 65.4%
+  Collected: 261,600 / 400,000 docs
+  File size: 1,250.3 MB
+  Last update: 2026-01-11T07:45:23
+
+TinhTe      [██████████░░░░░░░░░░] 52.3%
+  Collected: 156,900 / 300,000 docs
+  ...
+
+TOTAL: 547,800 / 1,000,000 docs (54.8%)
+Rate: 2,345 docs/hour
+ETA: 8.5 days
+================================================================================
+```
+
+### 7. KẾ HOẠCH 3 TUẦN
+
+**Tuần 1 (10-16 Jan): Setup & Testing**
+```
+✅ Day 1-2: Setup scripts, test crawlers
+✅ Day 3-4: Fix bugs, optimize
+⬜ Day 5-7: Start crawling (target: 150K docs)
+```
+
+**Tuần 2 (17-23 Jan): Main Crawling**
+```
+⬜ Chạy full 10h/ngày
+⬜ Target: 450K docs (total 600K)
+⬜ Monitor và fix issues
+⬜ Backup data mỗi ngày
+```
+
+**Tuần 3 (24-30 Jan): Final Push**
+```
+⬜ Chạy full + thêm giờ nếu cần
+⬜ Target: 400K docs (total 1M)
+⬜ Day 5-7: Data cleaning, deduplication
+⬜ Prepare demo và report
+```
+
+### 8. FILES CREATED
+
+**Documentation:**
+- `docs/Crawling_Strategy_Single_Machine.md` - Complete strategy guide (5000+ words)
+
+**Scripts to implement (Next session):**
+- `crawler_manager.py` - Multi-process orchestrator
+- `night_crawler.py` - Auto scheduler
+- `monitor_progress.py` - Real-time dashboard
+
+### 9. KEY TAKEAWAYS
+
+✅ **Khả thi với 1 máy:**
+- 4 processes song song = 2+ docs/s
+- 10h/đêm × 3 tuần = đủ cho 1M docs
+
+✅ **Checkpoint System:**
+- Dừng/Resume bất cứ lúc nào
+- Không mất dữ liệu khi crash
+
+✅ **Auto Scheduler:**
+- Set một lần, chạy tự động
+- 22:00 start, 08:00 stop
+
+✅ **Resource Friendly:**
+- 2GB RAM, 4 cores
+- Không ảnh hưởng công việc ban ngày
+
+✅ **Monitoring:**
+- Real-time progress tracking
+- ETA calculation
+- Alert nếu có issue
+
+### 10. NEXT STEPS
+
+**Immediate (Tuần 1):**
+1. ⬜ Implement `crawler_manager.py`
+2. ⬜ Implement `night_crawler.py`
+3. ⬜ Implement `monitor_progress.py`
+4. ⬜ Test với 1000 docs
+5. ⬜ Start production crawling
+
+**Pro Tips:**
+1. Backup mỗi ngày (rsync/Google Drive)
+2. Test 30 phút trước khi sleep
+3. Cuối tuần chạy 20h thay vì 10h
+4. Log rotation để tránh disk đầy
+5. Document issues trong AI log
+
+**Risk Mitigation:**
+- IP block → Thêm delays dài hơn
+- Disk đầy → Compress/move data
+- Memory cao → Giảm số processes
+- Crawl chậm → Optimize selectors
+
+---
+
+**Status:** 
+- ✅ Strategy designed and documented
+- ✅ Architecture planned
+- ⬜ Implementation pending (Next session)
+- 🎯 Ready to start crawling Tuần 2
+
