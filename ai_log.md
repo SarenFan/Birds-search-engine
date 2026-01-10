@@ -2,6 +2,8 @@
 
 ## Date: 2026-01-10
 
+### Session 1: Khởi tạo project và crawler cơ bản
+
 **Task:** Khởi tạo project và xây dựng crawler cho Milestone 1 - Social Listening
 
 **User:** Nhóm tôi hiện tại đang ở tuần 1 chủ đề Social Listening (Lắng nghe Mạng xã hội)
@@ -12,47 +14,81 @@ Tôi sẽ là người đầu tiên thực hiện crawler và data collection, h
 Ngoài ra bạn hãy tạo sẵn một file ai.md sau đó lưu đoạn chat này lại để tôi xem thử.
 Cuối cùng chạy thử 4 file crawl 100 docs từ cả 4 trang web sau đó tính toán xem thời gian để crawl 1 triệu docs và set up như yêu cầu trong file .docx tốn bao nhiêu thời gian
 
-**AI (GitHub Copilot):** Tôi sẽ giúp bạn setup crawler cho milestone 1. Đây là chiến lược thực hiện:
+**AI Response:** Đã tạo:
 
-### Phân tích yêu cầu:
+- Cấu trúc project theo yêu cầu SEG301
+- 4 async crawlers (Voz, TinhTe, Otofun, Spiderum)
+- Utilities cho parsing và validation
+- Requirements.txt với các thư viện cần thiết
 
-1. **Mục tiêu**: Thu thập 1.000.000 documents từ 4 nguồn
-2. **Định nghĩa Document**: Thread hoặc Comment > 50 từ
-3. **Thách thức kỹ thuật**:
-   - Xử lý cấu trúc cây (nested replies)
-   - Chuẩn hóa ngôn ngữ mạng (Teencode, Slang)
-4. **Yêu cầu kỹ thuật**:
-   - Async/Multi-threading để tăng tốc
-   - Cơ chế Resume khi rớt mạng
-   - Lưu trữ dạng JSONL hoặc Parquet
+**Kết quả test:** Gặp lỗi Brotli encoding và anti-scraping từ các website. Cần cải thiện phương pháp crawling.
 
-### Các bước thực hiện:
+---
 
-1. ✅ Tạo cấu trúc thư mục theo yêu cầu project
-2. ✅ Tạo file .gitignore, requirements.txt, README.md
-3. 🔄 Tạo file ai.md để log lịch sử chat
-4. ⏳ Implement crawler cho từng trang web:
-   - Voz (F17/F33 forums)
-   - TinhTe
-   - Otofun
-   - Spiderum
-5. ⏳ Test crawl 100 docs và tính toán thời gian
+### Session 2: Nâng cấp với Selenium để bypass anti-scraping
 
-### Công nghệ sử dụng:
+**User:** hãy tiếp tục điều chỉnh crawler để bypass anti-scraping
 
-- **aiohttp**: Async HTTP requests
-- **BeautifulSoup4**: Parse HTML
-- **underthesea**: Tách từ tiếng Việt & chuẩn hóa
-- **jsonlines**: Lưu trữ dữ liệu
-- **tqdm**: Progress bar
+**AI Strategy:**
+Để bypass anti-scraping, tôi đã implement:
 
-### Đang thực hiện:
+1. **undetected-chromedriver**: Library chuyên để bypass bot detection
+2. **Selenium automation**: Điều khiển Chrome như người dùng thật
+3. **Human-like behavior**:
+   - Random delays giữa requests (1-3s)
+   - Scroll page để load dynamic content
+   - Rotate user agents
+4. **Enhanced headers**: Thêm các headers như browser thật
+5. **Session management**: Giữ cookies và session state
 
-Tôi sẽ tạo các file crawler với các tính năng:
+**Implementations:**
 
-1. Async crawling để tăng tốc
-2. Rate limiting để tránh bị ban
-3. Error handling và retry mechanism
-4. Resume capability (lưu checkpoint)
-5. Data validation (> 50 từ)
-6. Xử lý nested comments/replies
+1. **selenium_utils.py**: Base class cho Selenium crawling
+
+   - SeleniumCrawler với anti-detection
+   - Human-like delays và scrolling
+   - Enhanced headers và user agent rotation
+
+2. **Improved Crawlers:**
+   - voz_selenium_crawler.py
+   - tinhte_selenium_crawler.py
+   - spiderum_selenium_crawler.py
+
+**Technical Details:**
+
+```python
+# Anti-detection measures
+- headless=new mode (harder to detect)
+- disable automation flags
+- random user agents (fake-useragent)
+- human-like scrolling patterns
+- random delays between actions
+```
+
+**Testing Results:**
+
+- ✅ Selenium driver khởi tạo thành công
+- ✅ Pages load được (bypass initial blocking)
+- ⚠️ Cần điều chỉnh selectors cho từng site
+- 📊 Debug tool đã xác định được structure của Voz
+
+**Next Steps:**
+
+1. Fine-tune CSS selectors cho mỗi website
+2. Test với authentication nếu cần
+3. Optimize speed vs detection tradeoff
+4. Consider using proxies nếu bị rate limit
+
+**Files Created:**
+
+- src/crawler/selenium_utils.py
+- src/crawler/voz_selenium_crawler.py
+- src/crawler/tinhte_selenium_crawler.py
+- src/crawler/spiderum_selenium_crawler.py
+- test_selenium_crawlers.py
+- debug_page_structure.py
+
+**Git Commits:**
+
+- Initial commit: Setup project structure
+- Feature commit: Selenium-based crawlers with anti-scraping bypass
