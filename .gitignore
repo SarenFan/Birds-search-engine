@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Data files (large files)
+data/*.jsonl
+data/*.json
+data/*.parquet
+data/*.csv
+
+# Checkpoints (keep structure but ignore large checkpoint files)
+checkpoints/*.json
+checkpoints/*.pkl
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Selenium
+*.log
+chromedriver
+geckodriver
+
+# Temporary files
+*.tmp
+*.bak
+*.cache
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Keep directory structure
+!data/.gitkeep
+!checkpoints/.gitkeep
