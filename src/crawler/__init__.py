@@ -1,7 +1,4 @@
 """
-Web Crawlers for Social Listening
+Milestone 1: Data Acquisition
+Web crawlers for Vietnamese forums
 """
-
-from .base_crawler import BaseCrawler
-
-__all__ = ['BaseCrawler']

@@ -1,26 +1,40 @@
-# Web Scraping
+# ==========================================
+# SEG301 - Social Listening Search Engine
+# Requirements for Milestone 1, 2, 3
+# ==========================================
+
+# === MILESTONE 1: Data Acquisition ===
+# Web Scraping & Crawling
 selenium==4.16.0
 undetected-chromedriver==3.5.5
 beautifulsoup4==4.12.2
 lxml==5.1.0
+requests==2.31.0
 aiohttp==3.9.1
 fake-useragent==1.4.0
 
-# Data Processing
-pandas==2.1.4
-pyarrow==14.0.2
-jsonlines==4.0.0
-
-# Vietnamese NLP
+# Vietnamese NLP & Text Processing
 underthesea==6.7.0
 pyvi==0.1.1
+regex==2023.12.25
 
-# Utilities
-tqdm==4.66.1
-python-dotenv==1.0.0
-requests==2.31.0
+# Data Storage & Processing
+pandas==2.1.4
+jsonlines==4.0.0
 
-# Development
+# === MILESTONE 2: Indexing & Ranking ===
+# (Sẽ thêm sau khi hoàn thành Milestone 1)
+# numpy>=1.24.0
+# scikit-learn>=1.3.0
+
+# === MILESTONE 3: UI & Vector Search ===
+# (Sẽ thêm sau khi hoàn thành Milestone 2)
+# streamlit>=1.28.0
+# sentence-transformers>=2.2.0
+# faiss-cpu>=1.7.4
+
+# === Development Tools ===
 pytest==7.4.3
 black==23.12.1
-flake8==7.0.0
+tqdm==4.66.1
+python-dotenv==1.0.0

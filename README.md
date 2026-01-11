@@ -1,7 +1,7 @@
 # Birds Search Engine - Social Listening Project
 
-**Môn học:** SEG301 - Search Engines & Information Retrieval  
-**Chủ đề:** Topic 4 - Social Listening (Lắng nghe Mạng xã hội)  
+**Môn học:** SEG301 - Search Engines & Information Retrieval
+**Chủ đề:** Topic 4 - Social Listening (Lắng nghe Mạng xã hội)
 **Mục tiêu:** Crawl 1,000,000+ documents từ các diễn đàn Việt Nam
 
 ## 📊 Nguồn Dữ Liệu
@@ -60,7 +60,7 @@ python src/run_crawlers.py
 
 ## 📈 Progress
 
-**Milestone 1 (Week 4):** Data Acquisition - 1M documents  
+**Milestone 1 (Week 4):** Data Acquisition - 1M documents
 **Status:** In Progress
 
 ## 🔗 Links
