@@ -2373,3 +2373,147 @@ Quyết định làm lại project từ đầu, reset toàn bộ repository như
 **Total Sessions Logged:** 12
 **Last Updated:** 2026-01-11 19:40
 **Status:** Repository reset - Ready for fresh start with full Git history preserved
+
+---
+
+## === SUPPLEMENTARY LOG FROM ai_log.md ===
+
+# AI Log - SEG301 Project
+
+## Lịch sử tương tác với AI Assistant
+
+---
+
+### Session 1: 2026-01-12 ~ 2026-01-13
+**Focus:** Khởi tạo project và hoàn thành Milestone 2, 3
+
+#### Phase 1: Research & Planning
+- Đọc file đề bài SEG301, lập kế hoạch 3 milestones
+- Research Voz Forum HTML structure
+
+#### Phase 2: Crawler Development (Milestone 1 - Initial)
+- Thử requests, Selenium → cloudscraper thành công
+- Multi-threading 5→20 workers, tối ưu 1121 docs/min
+- Production crawler với resume checkpoint
+
+#### Phase 3: Search Engine (Milestone 2)
+- Vietnamese Tokenizer với underthesea
+- SPIMI Block-based (disk write + merge)
+- BM25: Self-coded TF, IDF, avgdl
+- Console Search CLI
+
+#### Phase 4: Final Product (Milestone 3)
+- Vector Search: sentence-transformers + FAISS
+- Hybrid Search: BM25 + Vector score fusion
+- Web UI: Flask với Filter, Pagination
+- Evaluation: 20 queries, Precision@10 report
+
+---
+
+### Session 2: 2026-01-15 ~ 2026-01-16
+**Focus:** Hoàn thành crawl data thực tế cho Milestone 1
+
+#### Phase 1: Cloudflare Bypass Issues
+- Gặp lỗi Cloudflare blocking trên máy local
+- Thử warp-cli để bypass → thành công
+- Gặp lỗi "Too many open files" → fix với ulimit và giảm workers
+
+#### Phase 2: Lightning AI Crawling
+- Cài đặt crawler trên Lightning AI cloud
+- Thấy Lightning AI không bị Cloudflare block
+- Tạo `voz_crawler_lightning.py` standalone version
+- Thêm `--start-page` parameter để resume từ page cụ thể
+
+#### Phase 3: Data Collection
+| Source | Documents | Time |
+|--------|-----------|------|
+| Voz (Local) | 584,687 | 8+ hours |
+| Voz (Lightning AI) | 108,208 | 3.5 hours |
+| OtoFun | 25,422 | 2 hours |
+| VN-Zoom | 10,611 | 1 hour |
+
+#### Phase 4: Data Merge & Statistics
+- Merge Voz local + Lightning AI → 692,895 unique docs
+- Chạy data_statistics.py cho cả 3 nguồn
+- Cập nhật Milestone1_Report.md với số liệu đầy đủ
+
+#### Phase 5: SPIMI Index Rebuild
+- Build SPIMI index từ 692,894 docs
+- 14 blocks (50K docs/block), 48 phút build time
+- Index size: 757 MB, 633,541 terms
+
+---
+
+## Summary
+
+### ✅ Milestone 1: Data Acquisition
+| Metric | Giá trị |
+|--------|---------|
+| Total Documents | 728,928 |
+| Voz Forum | 692,895 (62.8M words) |
+| OtoFun | 25,422 (3.8M words) |
+| VN-Zoom | 10,611 (2.6M words) |
+| Total Words | 69.2M |
+| Unique Authors | 42,062 |
+
+### ✅ Milestone 2: Core Search Engine
+| Metric | Giá trị |
+|--------|---------|
+| SPIMI Index | 757 MB, 48 phút build |
+| Vocabulary | 633,541 terms |
+| Documents Indexed | 692,894 |
+| Avg Doc Length | 54.5 tokens |
+
+### ✅ Milestone 3: Final Product
+| Component | Chi tiết |
+|-----------|----------|
+| Vector Search | MiniLM + FAISS |
+| Hybrid Search | α=0.5 fusion |
+| Web UI | Flask, Filter, Pagination |
+
+---
+
+## Files
+
+```
+src/crawler/
+├── voz_crawler_1m.py       # Production Voz crawler
+├── otofun_crawler.py       # OtoFun crawler
+├── vnzoom_crawler.py       # VN-Zoom crawler
+├── data_statistics.py      # Statistics report
+└── filter_data.py          # Min word filter
+
+src/indexer/
+├── spimi.py                # Block-based SPIMI
+└── tokenizer.py            # Vietnamese tokenizer
+
+src/ranking/
+└── bm25.py                 # Self-coded BM25
+
+src/search/
+├── vector_search.py        # FAISS + MiniLM
+└── hybrid_search.py        # Score fusion
+
+src/web/
+└── app.py                  # Flask web app
+
+lightning_ai/
+└── voz_crawler_lightning.py  # Cloud version
+```
+
+---
+
+## Data Files
+
+```
+data/
+├── voz_1m.jsonl         # 692,895 docs (965 MB)
+├── otofun.jsonl         # 25,422 docs
+├── vnzoom.jsonl         # 10,611 docs
+└── index/
+    └── inverted_index.pkl  # 757 MB
+```
+
+---
+
+*AI Log updated: 2026-01-16*
