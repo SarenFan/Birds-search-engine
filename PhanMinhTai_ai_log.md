@@ -2517,3 +2517,67 @@ data/
 ---
 
 *AI Log updated: 2026-01-16*
+
+---
+
+### Session 3: 2026-01-16
+**Focus:** Mở rộng crawl Voz lên 1.1M+ docs, thử nghiệm Facebook crawler
+
+#### Phase 1: Facebook Crawling Research & Attempts
+- Nghiên cứu các phương pháp crawl Facebook
+- Thử 5 phương pháp khác nhau:
+  1. Playwright headless → ❌ Timeout
+  2. facebook-scraper library → ❌ No posts found
+  3. mbasic.facebook.com → ❌ HTTP 400
+  4. www-direct với headers → ❌ Redirect to login
+  5. Selenium undetected-chromedriver → ❌ Redirect to login
+- **Kết luận:** Facebook yêu cầu đăng nhập cho tất cả public pages
+
+#### Phase 2: Mở rộng Voz Crawler
+- Update `voz_crawler_lightning.py`:
+  - Thêm 21 forums mới (tổng 31 forums)
+  - Tăng max_pages từ 2000 → 5000
+  - Multi-page thread crawling (10 pages/thread)
+  - Default target: 1.2M docs
+
+#### Phase 3: Lightning AI Crawling Round 2
+- Chạy crawler mở rộng trên Lightning AI
+- Crawl thêm 527,716 docs
+- Merge với data cũ → **1,110,701 unique Voz docs**
+
+#### Phase 4: Git Updates
+- Push updated crawlers lên `SarenFan/Birds-search-engine`
+- Commit: `372ca72` - Updated crawlers with 1.1M docs version
+
+---
+
+## FINAL SUMMARY - MILESTONE 1 COMPLETED ✅
+
+### Data Acquisition Results
+
+| Source | Documents | File |
+|--------|-----------|------|
+| **Voz Forum** | **1,110,701** | `voz_merged.jsonl` (1.4GB) |
+| OtoFun | 25,422 | `otofun.jsonl` |
+| VN-Zoom | 10,611 | `vnzoom.jsonl` |
+| **TOTAL** | **1,146,734** | Exceeded 1M target ✅ |
+
+### Crawler Technologies Used
+- `cloudscraper` - Cloudflare bypass
+- Multi-threading (15-20 workers)
+- Checkpoint/Resume mechanism
+- Lightning AI cloud (no Cloudflare blocks)
+
+### Files in Repository
+```
+src/crawler/
+├── voz_crawler_1m.py           # Production crawler (local)
+├── voz_crawler_lightning.py    # Lightning AI version (31 forums)
+└── __init__.py                 # Module exports
+```
+
+---
+
+*AI Log updated: 2026-01-16 20:04*
+**Total Sessions Logged:** 13+
+**Status:** Milestone 1 Data Acquisition COMPLETED with 1.1M+ documents
