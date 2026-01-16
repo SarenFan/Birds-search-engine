@@ -95,18 +95,53 @@ class VozCrawler:
     
     BASE_URL = "https://voz.vn"
     
-    # Forums to crawl (ordered by activity)
+    # Forums to crawl (expanded list for 1M+ docs)
+    # Ordered by estimated content volume
     FORUMS = [
-        '/f/chuyen-tro-linh-tinh.17/',
-        '/f/kinh-te-tai-chinh.33/',
-        '/f/suc-khoe.53/',
-        '/f/tin-trong-nuoc.102/',
-        '/f/tin-the-gioi.101/',
-        '/f/cong-nghe.2/',
-        '/f/may-tinh.3/',
-        '/f/dien-thoai-tablet.4/',
-        '/f/thi-truong.5/',
-        '/f/lap-trinh.37/',
+        # HIGH VOLUME - Main discussion forums
+        '/f/chuyen-tro-linh-tinh.17/',      # Chuyện trò linh tinh (HUGE)
+        '/f/kinh-te-tai-chinh.33/',         # Kinh tế tài chính
+        '/f/mot-goc-rieng.249/',            # Một góc riêng (personal stories)
+        '/f/suc-khoe.53/',                  # Sức khỏe
+        '/f/tin-trong-nuoc.102/',           # Tin trong nước
+        '/f/tin-the-gioi.101/',             # Tin thế giới
+        
+        # TECH forums
+        '/f/cong-nghe.2/',                  # Công nghệ chung
+        '/f/may-tinh.3/',                   # Máy tính
+        '/f/dien-thoai-tablet.4/',          # Điện thoại & Tablet
+        '/f/lap-trinh.37/',                 # Lập trình
+        '/f/mang-va-bao-mat.38/',           # Mạng & Bảo mật
+        '/f/phan-mem.39/',                  # Phần mềm
+        '/f/linux.40/',                     # Linux
+        '/f/gaming.41/',                    # Gaming
+        
+        # AUTOMOTIVE
+        '/f/o-to.174/',                     # Ô tô
+        '/f/xe-may.175/',                   # Xe máy
+        
+        # LIFESTYLE
+        '/f/the-thao.33/',                  # Thể thao
+        '/f/am-thuc.56/',                   # Ẩm thực
+        '/f/du-lich.57/',                   # Du lịch
+        '/f/giai-tri.34/',                  # Giải trí
+        '/f/phim-anh.296/',                 # Phim ảnh
+        '/f/am-nhac.297/',                  # Âm nhạc
+        
+        # EDUCATION & CAREER
+        '/f/giao-duc.103/',                 # Giáo dục
+        '/f/du-hoc.104/',                   # Du học
+        '/f/nghe-nghiep.105/',              # Nghề nghiệp
+        
+        # REAL ESTATE & FINANCE
+        '/f/bat-dong-san.595/',             # Bất động sản
+        '/f/chung-khoan.594/',              # Chứng khoán
+        '/f/thi-truong.5/',                 # Thị trường
+        
+        # OTHER HIGH-ACTIVITY
+        '/f/sach.58/',                      # Sách
+        '/f/hoi-dap.111/',                  # Hỏi đáp
+        '/f/rao-vat.7/',                    # Rao vặt (marketplace - lots of posts)
     ]
     
     def __init__(self, 
@@ -228,57 +263,75 @@ class VozCrawler:
         
         return threads, total_on_page
     
-    def crawl_thread(self, thread: dict) -> List[dict]:
-        """Crawl a single thread"""
+    def crawl_thread(self, thread: dict, max_thread_pages: int = 10) -> List[dict]:
+        """Crawl a single thread (multiple pages)"""
         scraper = self._create_scraper()
         documents = []
+        base_url = thread['url']
         
         try:
-            html = self._get_page(scraper, thread['url'])
-            if not html:
-                return []
-            
-            soup = BeautifulSoup(html, 'lxml')
-            
-            for article in soup.select('article.message'):
-                try:
-                    post_id = article.get('data-content', '').replace('post-', '')
-                    if not post_id or self.checkpoint.is_post_crawled(post_id):
+            for page_num in range(1, max_thread_pages + 1):
+                # Construct page URL
+                if page_num == 1:
+                    url = base_url
+                else:
+                    url = f"{base_url}page-{page_num}"
+                
+                html = self._get_page(scraper, url)
+                if not html:
+                    break
+                
+                soup = BeautifulSoup(html, 'lxml')
+                posts_found = 0
+                
+                for article in soup.select('article.message'):
+                    try:
+                        post_id = article.get('data-content', '').replace('post-', '')
+                        if not post_id or self.checkpoint.is_post_crawled(post_id):
+                            continue
+                        
+                        content_elem = article.select_one('div.bbWrapper')
+                        if not content_elem:
+                            continue
+                        
+                        content = self._clean_text(content_elem.get_text())
+                        word_count = len(content.split())
+                        
+                        if word_count >= self.min_word_count:
+                            # Get author
+                            author_elem = article.select_one('a.username')
+                            author = author_elem.get_text(strip=True) if author_elem else "Unknown"
+                            
+                            # Get timestamp
+                            time_elem = article.select_one('time.u-dt')
+                            timestamp = time_elem.get('datetime', '') if time_elem else ""
+                            
+                            doc = {
+                                'doc_id': f"voz_{thread['thread_id']}_{post_id}",
+                                'thread_id': thread['thread_id'],
+                                'thread_title': thread['title'],
+                                'content': content,
+                                'author': author,
+                                'timestamp': timestamp,
+                                'source': 'voz',
+                                'url': f"{self.BASE_URL}/p/{post_id}/",
+                                'word_count': word_count
+                            }
+                            
+                            documents.append(doc)
+                            self.checkpoint.add_post(post_id)
+                            posts_found += 1
+                            
+                    except Exception as e:
                         continue
+                
+                # Check for next page
+                next_btn = soup.select_one('a.pageNav-jump--next')
+                if not next_btn:
+                    break
                     
-                    content_elem = article.select_one('div.bbWrapper')
-                    if not content_elem:
-                        continue
-                    
-                    content = self._clean_text(content_elem.get_text())
-                    word_count = len(content.split())
-                    
-                    if word_count >= self.min_word_count:
-                        # Get author
-                        author_elem = article.select_one('a.username')
-                        author = author_elem.get_text(strip=True) if author_elem else "Unknown"
-                        
-                        # Get timestamp
-                        time_elem = article.select_one('time.u-dt')
-                        timestamp = time_elem.get('datetime', '') if time_elem else ""
-                        
-                        doc = {
-                            'doc_id': f"voz_{thread['thread_id']}_{post_id}",
-                            'thread_id': thread['thread_id'],
-                            'thread_title': thread['title'],
-                            'content': content,
-                            'author': author,
-                            'timestamp': timestamp,
-                            'source': 'voz',
-                            'url': f"{self.BASE_URL}/p/{post_id}/",
-                            'word_count': word_count
-                        }
-                        
-                        documents.append(doc)
-                        self.checkpoint.add_post(post_id)
-                        
-                except Exception as e:
-                    continue
+                # Small delay between thread pages
+                time.sleep(random.uniform(0.1, 0.2))
             
             self.checkpoint.add_thread(thread['thread_id'])
             
@@ -341,7 +394,7 @@ class VozCrawler:
                         
                         page = start_page if forum_idx == start_forum_idx else 1
                         start_page = 1  # Reset for next forums
-                        max_pages = 2000
+                        max_pages = 5000  # Increased for 1M+ target
                         
                         while page <= max_pages and self.total_docs < target_docs:
                             self.logger.info(f"📂 Crawling {forum_url.split('/')[2]} page {page}")
@@ -398,7 +451,7 @@ class VozCrawler:
 
 def main():
     parser = argparse.ArgumentParser(description='Voz Crawler for Lightning AI')
-    parser.add_argument('--target', type=int, default=600000, help='Target documents')
+    parser.add_argument('--target', type=int, default=1200000, help='Target documents (default: 1.2M)')
     parser.add_argument('--workers', type=int, default=10, help='Number of workers')
     parser.add_argument('--output', type=str, default='data/voz_lightning.jsonl', help='Output file')
     parser.add_argument('--min-words', type=int, default=50, help='Minimum word count')
