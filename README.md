@@ -71,3 +71,5 @@ python src/run_crawlers.py
 ## 👥 Team
 
 - Phan Minh Tài - Crawler & Data Collection
+- Nguyễn Châu Thành Sơn - Filter & Cleaning
+- Trần Gia Phúc - Insight Data
