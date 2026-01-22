@@ -6,9 +6,9 @@
 
 ## 📊 Nguồn Dữ Liệu
 
-- **VOZ Forum** (F17/F33): 500,000 docs
-- **Otofun**: 300,000 docs
-- **TinhTe**: 200,000 docs
+- **VOZ Forum** (F17/F33): ~1,500,000 docs
+- **Otofun**: ~127,000 docs
+
 
 ## 🏗️ Cấu Trúc Project
 
@@ -66,8 +66,7 @@ python src/run_crawlers.py
 ## 🔗 Links
 
 - **Repository:** https://github.com/SarenFan/Birds-search-engine
-- **AI Log:** [PhanMinhTai_ai_log.md](PhanMinhTai_ai_log.md)
-
+-**Google Drive:** https://drive.google.com/drive/folders/1A_DRWJeeh--1jtF7Jiu5_IY9lAsCYQb7?usp=sharing
 ## 👥 Team
 
 - Phan Minh Tài - Crawler & Data Collection
