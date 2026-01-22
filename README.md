@@ -61,11 +61,12 @@ python src/run_crawlers.py
 ## 📈 Progress
 
 **Milestone 1 (Week 4):** Data Acquisition - 1M documents
-**Status:** In Progress
+**Status:** Finished
 
 ## 🔗 Links
 
 - **Repository:** https://github.com/SarenFan/Birds-search-engine
+  
 -**Google Drive:** https://drive.google.com/drive/folders/1A_DRWJeeh--1jtF7Jiu5_IY9lAsCYQb7?usp=sharing
 ## 👥 Team
 
