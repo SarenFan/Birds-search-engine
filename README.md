@@ -6,22 +6,23 @@
 
 ## 📊 Nguồn Dữ Liệu
 
-- **VOZ Forum** (F17/F33): ~1,600,000 docs
-
+- **VOZ Forum** (8 chuyên mục): ~1,008,664 docs raw → 1,000,083 docs sau cleaning
 
 ## 🏗️ Cấu Trúc Project
 
 ```
 .
 ├── src/
-│   ├── crawler/          # Web crawlers
-│   ├── parser/           # Text processing & NLP
-│   ├── storage/          # Data storage & checkpoints
-│   └── utils/            # Utilities & configs
-├── data/                 # Raw crawled data
-├── checkpoints/          # Resume checkpoints
-├── tests/                # Unit tests
-└── docs/                 # Documentation
+│   └── crawler/
+│       ├── voz_crawler_1m.py      # Crawler chính (multi-thread, checkpoint/resume)
+│       ├── parser.py              # Pipeline làm sạch dữ liệu
+│       └── statistics_report.py   # Báo cáo thống kê
+├── data_sample/
+│   └── voz_cleaned_sample.jsonl   # 500 docs mẫu
+├── docs/
+│   ├── Milestone1_Report.pdf      # Báo cáo Milestone 1
+│   └── statistics_report.md       # Thống kê dữ liệu
+└── requirements.txt
 ```
 
 ## 🚀 Quick Start
@@ -41,32 +42,35 @@ pip install -r requirements.txt
 ### Usage
 
 ```bash
-# Test crawlers
-python tests/test_voz_crawler.py
+# Crawl dữ liệu (1 triệu documents, 20 threads)
+python src/crawler/voz_crawler_1m.py --target 1000000 --workers 20
 
-# Run production crawl
-python src/run_crawlers.py
+# Cleaning dữ liệu
+python src/crawler/parser.py --input data/voz_1m.jsonl --output data/cleaned/
+
+# Tạo thống kê
+python src/crawler/statistics_report.py --input data/cleaned/voz_cleaned.jsonl
 ```
 
 ## 📝 Features
 
-- ✅ Anti-scraping bypass (undetected-chromedriver)
+- ✅ Anti-scraping bypass (cloudscraper)
 - ✅ Checkpoint & resume mechanism
 - ✅ Vietnamese text normalization (teencode, slang)
-- ✅ Tree structure parsing (nested comments)
-- ✅ Multi-process parallel crawling
-- ✅ Real-time progress monitoring
+- ✅ Vietnamese word segmentation (underthesea)
+- ✅ Multi-thread parallel crawling (20 workers)
+- ✅ De-duplication (MD5 content hash)
 
 ## 📈 Progress
 
 **Milestone 1 (Week 4):** Data Acquisition - 1M documents
-**Status:** Finished
+**Status:** Finished ✅
 
 ## 🔗 Links
 
 - **Repository:** https://github.com/SarenFan/Birds-search-engine
-  
-- **Google Drive:** [https://drive.google.com/drive/folders/1Vtx8j-3XNUiN_RAMU3qOjJUh-0ldc3EA](https://drive.google.com/drive/folders/1A_DRWJeeh--1jtF7Jiu5_IY9lAsCYQb7?usp=sharing)
+- **Google Drive (Data):** https://drive.google.com/drive/folders/1vO7bEeitscNEJzvk2tKmtx1lG95WExKv?usp=sharing
+
 ## 👥 Team
 
 - Phan Minh Tài - Crawler & Data Collection
