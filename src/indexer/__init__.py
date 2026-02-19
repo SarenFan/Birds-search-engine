@@ -1,4 +1,1 @@
-"""
-Milestone 2: Indexing
-SPIMI algorithm implementation
-"""
+from .spimi import SPIMIIndexer, InvertedIndex
