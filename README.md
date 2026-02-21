@@ -63,25 +63,6 @@ python src/search_cli.py
 python src/ranking/bm25.py
 ```
 
-## Milestone 2: Chi tiết kỹ thuật
-
-### SPIMI Indexer (`src/indexer/spimi.py`)
-- **3 pha**: P1 (index blocks) → P2 (n-way heap merge) → P3 (metadata)
-- Chia docs thành blocks, flush xuống đĩa, merge bằng heap → tránh tràn RAM
-- Postings format: `(doc_id, tf)` tuples
-- Index 1M docs trong ~2 phút trên 16GB RAM
-
-### BM25 Ranker (`src/ranking/bm25.py`)
-- Okapi BM25: `Score = Σ IDF(qi) * tf*(k1+1) / (tf + k1*(1-b + b*|D|/avgdl))`
-- IDF: `log((N - df + 0.5) / (df + 0.5) + 1)`
-- k1=1.5, b=0.75
-- Pre-compute hằng số + flat doc_length dict → search < 500ms trên 1M docs
-- Stopwords từ thư viện `stopwordsiso` (265 từ tiếng Việt)
-
-### Console App (`src/search_cli.py`)
-- Nhập query → trả top 10 kết quả với score, title, URL
-- Commands: `:top N`, `:stats`, `:quit`
-
 ## Progress
 
 | Milestone | Deadline | Status |
