@@ -78,6 +78,6 @@ python src/ranking/bm25.py
 
 ## Team
 
-- Phan Minh Tài - Crawler & Data Collection
-- Nguyễn Châu Thành Sơn - Filter & Cleaning
-- Trần Gia Phúc - Insight Data
+- Phan Minh Tài
+- Nguyễn Châu Thành Sơn
+- Trần Gia Phúc
