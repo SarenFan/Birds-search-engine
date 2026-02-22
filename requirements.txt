@@ -26,10 +26,9 @@ jsonlines==4.0.0
 stopwordsiso>=0.6.1      # Vietnamese stopwords cho query processing
 
 # === MILESTONE 3: UI & Vector Search ===
-# (Sẽ thêm sau khi hoàn thành Milestone 2)
-# streamlit>=1.28.0
-# sentence-transformers>=2.2.0
-# faiss-cpu>=1.7.4
+flask>=3.0.0
+sentence-transformers>=2.2.2
+faiss-cpu>=1.7.4
 
 # === Development Tools ===
 pytest==7.4.3

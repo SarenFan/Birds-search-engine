@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voz Search Engine</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 1rem;
+        }
+        
+        .search-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .search-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        #searchInput {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            font-size: 1.1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        #searchInput:focus {
+            border-color: #00d9ff;
+        }
+        
+        #searchBtn {
+            padding: 14px 28px;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        #searchBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,217,255,0.3);
+        }
+        
+        .controls-row {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .mode-btn {
+            padding: 8px 20px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 25px;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .mode-btn:hover, .mode-btn.active {
+            border-color: #00d9ff;
+            background: rgba(0,217,255,0.2);
+        }
+        
+        .filter-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        .filter-control input[type="range"] {
+            width: 100px;
+            accent-color: #00d9ff;
+        }
+        
+        .filter-control span {
+            min-width: 30px;
+            color: #00d9ff;
+        }
+        
+        .results-container {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .results-count {
+            color: #00d9ff;
+        }
+        
+        .results-time {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        .result-item {
+            padding: 18px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            transition: transform 0.2s, background 0.2s;
+        }
+        
+        .result-item:hover {
+            transform: translateX(5px);
+            background: rgba(0,0,0,0.35);
+        }
+        
+        .result-title {
+            font-size: 1.1rem;
+            color: #00ff88;
+            margin-bottom: 8px;
+        }
+        
+        .result-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+        
+        .result-title a:hover {
+            text-decoration: underline;
+        }
+        
+        .result-preview {
+            color: #bbb;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .result-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.8rem;
+            color: #888;
+            flex-wrap: wrap;
+        }
+        
+        .result-score {
+            background: rgba(0,217,255,0.2);
+            padding: 3px 10px;
+            border-radius: 10px;
+            color: #00d9ff;
+        }
+        
+        .result-author {
+            color: #ff9f43;
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .page-btn {
+            padding: 8px 14px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .page-btn:hover, .page-btn.active {
+            border-color: #00d9ff;
+            background: rgba(0,217,255,0.2);
+        }
+        
+        .page-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #00d9ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        
+        .stats-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.9);
+            padding: 10px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Voz Search</h1>
+            <p class="subtitle">SEG301 Social Listening - BM25 + Vector + Hybrid Search</p>
+        </header>
+        
+        <div class="search-box">
+            <div class="search-input-container">
+                <input type="text" id="searchInput" placeholder="Nhập từ khóa tìm kiếm..." autofocus>
+                <button id="searchBtn">Tìm kiếm</button>
+            </div>
+            
+            <div class="controls-row">
+                <div class="mode-selector">
+                    <button class="mode-btn active" data-mode="bm25">📊 BM25</button>
+                    <button class="mode-btn" data-mode="vector">🧠 Vector</button>
+                    <button class="mode-btn" data-mode="hybrid">⚡ Hybrid</button>
+                </div>
+                
+                <div class="filter-control">
+                    <label>Số kết quả:</label>
+                    <input type="range" id="topKSlider" min="5" max="50" value="10" step="5">
+                    <span id="topKValue">10</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="results-container">
+            <div class="results-header">
+                <span class="results-count" id="resultsCount">Sẵn sàng tìm kiếm</span>
+                <span class="results-time" id="resultsTime"></span>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top:15px">Đang tìm kiếm...</p>
+            </div>
+            
+            <div id="resultsList"></div>
+            
+            <div class="pagination" id="pagination" style="display:none;"></div>
+        </div>
+    </div>
+    
+    <div class="stats-bar" id="statsBar">Loading stats...</div>
+    
+    <script>
+        let currentMode = 'bm25';
+        let currentPage = 1;
+        let currentQuery = '';
+        let totalPages = 1;
+        
+        // Mode selector
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentMode = btn.dataset.mode;
+                if (currentQuery) doSearch();
+            });
+        });
+        
+        // Top K slider
+        const topKSlider = document.getElementById('topKSlider');
+        const topKValue = document.getElementById('topKValue');
+        topKSlider.addEventListener('input', () => {
+            topKValue.textContent = topKSlider.value;
+        });
+        topKSlider.addEventListener('change', () => {
+            if (currentQuery) doSearch();
+        });
+        
+        // Search function
+        async function doSearch(page = 1) {
+            currentQuery = document.getElementById('searchInput').value.trim();
+            if (!currentQuery) return;
+            
+            currentPage = page;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultsList').innerHTML = '';
+            document.getElementById('pagination').style.display = 'none';
+            
+            try {
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        query: currentQuery, 
+                        mode: currentMode, 
+                        top_k: parseInt(topKSlider.value),
+                        page: page
+                    })
+                });
+                
+                const data = await response.json();
+                totalPages = data.total_pages;
+                
+                document.getElementById('resultsCount').textContent = 
+                    `Tìm thấy ${data.total_count} kết quả (${currentMode.toUpperCase()}) - Trang ${data.page}/${data.total_pages}`;
+                document.getElementById('resultsTime').textContent = 
+                    `⏱️ ${data.time_ms} ms`;
+                
+                const resultsHtml = data.results.map((r, i) => `
+                    <div class="result-item">
+                        <div class="result-title">
+                            ${(data.page - 1) * 10 + i + 1}. <a href="${r.url}" target="_blank">${r.title || r.doc_id}</a>
+                        </div>
+                        <div class="result-preview">${r.content_preview || ''}...</div>
+                        <div class="result-meta">
+                            <span class="result-score">Score: ${r.score}</span>
+                            ${r.bm25_score !== undefined ? `<span>BM25: ${r.bm25_score}</span>` : ''}
+                            ${r.vector_score !== undefined ? `<span>Vector: ${r.vector_score}</span>` : ''}
+                            <span class="result-author">👤 ${r.author || 'Unknown'}</span>
+                            <span>ID: ${r.doc_id}</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('resultsList').innerHTML = 
+                    resultsHtml || '<div class="no-results">Không tìm thấy kết quả</div>';
+                
+                // Render pagination
+                renderPagination(data.page, data.total_pages);
+                
+            } catch (error) {
+                document.getElementById('resultsList').innerHTML = 
+                    `<div class="no-results">Lỗi: ${error.message}</div>`;
+            }
+            
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        function renderPagination(current, total) {
+            if (total <= 1) {
+                document.getElementById('pagination').style.display = 'none';
+                return;
+            }
+            
+            let html = '';
+            html += `<button class="page-btn" onclick="doSearch(1)" ${current === 1 ? 'disabled' : ''}>« Đầu</button>`;
+            html += `<button class="page-btn" onclick="doSearch(${current-1})" ${current === 1 ? 'disabled' : ''}>‹ Trước</button>`;
+            
+            for (let i = Math.max(1, current-2); i <= Math.min(total, current+2); i++) {
+                html += `<button class="page-btn ${i === current ? 'active' : ''}" onclick="doSearch(${i})">${i}</button>`;
+            }
+            
+            html += `<button class="page-btn" onclick="doSearch(${current+1})" ${current === total ? 'disabled' : ''}>Sau ›</button>`;
+            html += `<button class="page-btn" onclick="doSearch(${total})" ${current === total ? 'disabled' : ''}>Cuối »</button>`;
+            
+            document.getElementById('pagination').innerHTML = html;
+            document.getElementById('pagination').style.display = 'flex';
+        }
+        
+        // Event listeners
+        document.getElementById('searchBtn').addEventListener('click', () => doSearch(1));
+        document.getElementById('searchInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') doSearch(1);
+        });
+        
+        // Load stats
+        fetch('/stats')
+            .then(r => r.json())
+            .then(stats => {
+                document.getElementById('statsBar').textContent = 
+                    `📊 Docs: ${stats.total_docs || 0} | Vocab: ${stats.vocabulary_size || 0} | ` +
+                    `BM25: ${stats.bm25_available ? '✅' : '❌'} | ` +
+                    `Vector: ${stats.vector_available ? '✅' : '❌'} | ` +
+                    `Hybrid: ${stats.hybrid_available ? '✅' : '❌'}`;
+            });
+    </script>
+</body>
+</html>
