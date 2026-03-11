@@ -350,57 +350,8 @@ Có 2 cách tính BM25 score cho tất cả documents:
 
 Implementation sử dụng TAAT (Cách 2) — duyệt postings list tuần tự, mỗi posting chỉ cần 1 phép lookup `dl[doc_id]` và 1 phép cộng dồn vào `scores[doc_id]`.
 
-### 4.5. Tối ưu hiệu năng
 
-**3 kỹ thuật tối ưu chính:**
-
-**1. Pre-compute flat doc_length dict:**
-
-```python
-# Trước tối ưu: 2 dict lookups mỗi posting
-dl = self.index.doc_info[doc_id]['length']
-
-# Sau tối ưu: 1 dict lookup mỗi posting
-self._dl = {did: info['length'] for did, info in index.doc_info.items()}
-dl = self._dl[doc_id]
-```
-
-Với query "mua nhà hà nội" có ~310,000 postings, giảm 310,000 lần dict lookup.
-
-**2. Pre-compute hằng số BM25:**
-
-```python
-# Trước: tính lại mỗi posting
-tf_norm = (tf * (self.k1 + 1)) / (tf + self.k1 * (1 - self.b + self.b * dl / self.avgdl))
-
-# Sau: 3 hằng số tính 1 lần duy nhất khi khởi tạo
-self._k1_plus1 = k1 + 1                           # 2.5
-self._k1_times_1mb = k1 * (1 - b)                 # 0.375
-self._k1_b_over_avgdl = k1 * b / avg_doc_length   # 0.01176
-tf_norm = (tf * k1p1) / (tf + k1_1mb + k1ba * dl[doc_id])
-```
-
-**3. heapq.nlargest thay vì sorted:**
-
-```python
-# Trước: sort toàn bộ rồi lấy top-k → O(n log n)
-top = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:top_k]
-
-# Sau: chỉ tìm top-k phần tử lớn nhất → O(n log k)
-top = heapq.nlargest(top_k, scores.items(), key=lambda x: x[1])
-```
-
-Với k=10, n=200,000 scored documents: O(n log 10) vs O(n log 200000) — nhanh hơn ~4x cho bước sort.
-
-**Kết quả benchmark (1M docs):**
-
-| Query | Trước | Sau | Speedup |
-|-------|------:|----:|--------:|
-| mua nhà hà nội | 446ms | 235ms | 1.9x |
-| laptop gaming | 4.6ms | 1.9ms | 2.4x |
-| kinh nghiệm xin visa nhật bản | 115ms | 62ms | 1.9x |
-
-### 4.6. Query Tokenization
+### 4.5. Query Tokenization
 
 Query do người dùng nhập ở dạng raw text, cần xử lý trước khi search:
 
