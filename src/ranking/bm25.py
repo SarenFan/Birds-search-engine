@@ -36,7 +36,7 @@ class BM25:
     def search(self, query, top_k=10):
         terms = tokenize_query(query)
         if not terms:
-            return []
+            return [], 0
 
         scores = {}
         dl = self._dl  # local ref (nhanh hơn self.xxx trong loop)
@@ -54,8 +54,10 @@ class BM25:
 
         # heapq top-k: O(n log k) thay vì O(n log n)
         import heapq
+        total_matching = len(scores)
         top = heapq.nlargest(top_k, scores.items(), key=lambda x: x[1])
-        return [(doc_id, score, self.index.doc_info[doc_id]) for doc_id, score in top]
+        results = [(doc_id, score, self.index.doc_info[doc_id]) for doc_id, score in top]
+        return results, total_matching
 
 
 if __name__ == "__main__":
@@ -64,5 +66,7 @@ if __name__ == "__main__":
     bm25 = BM25(idx)
     for q in ['mua laptop', 'kinh nghiệm mua nhà', 'game online']:
         print(f"\nQuery: '{q}'")
-        for doc_id, score, info in bm25.search(q, top_k=3):
+        results, total = bm25.search(q, top_k=3)
+        print(f"  Total matching: {total:,}")
+        for doc_id, score, info in results:
             print(f"  [{score:.3f}] {info['title'][:60]}")

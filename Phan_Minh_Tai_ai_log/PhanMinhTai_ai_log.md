@@ -3335,3 +3335,80 @@ Min word count	Loại bỏ docs < 5 từ
 Bạn có muốn thay đổi gì không? Nếu OK thì tôi sẽ bắt đầu viết code.
 
 ## Lưu ý đây chỉ là một nửa đoạn chat, các phần khác vì dài quá nên đã bị mất
+
+---
+
+## Date: 2026-03-21 → 2026-03-22
+**Task:** Milestone 3 — UI improvements, RAM management, Evaluation review, Report fixes
+
+### Session Summary
+
+**User:** Yêu cầu cải thiện Web UI cho M3: thêm alpha slider, thay top_k slider thành input field, hiển thị total_matching docs, thêm client-side pagination caching.
+
+**AI (Claude):** Implement các tính năng UI cho BM25 mode:
+- Sửa BM25.search() trả về tuple (results, total_matching)
+- Thêm input field cho top_k thay vì slider
+- Hiển thị "Hiển thị 1-10 / 500 kết quả (tổng X docs matching)"
+- Client-side pagination caching (không re-search khi chuyển trang)
+- Alpha slider chỉ hiện khi mode Hybrid
+
+**User:** BM25 UI ổn rồi, nhưng Vector với Hybrid chưa sửa UI.
+
+**AI:** Tiến hành sửa Vector/Hybrid UI tương tự BM25.
+
+**User:** Khi Ctrl+C quit web app có giải phóng RAM không? Load cả inverted_index + vector_index + cached results có nặng quá không? Hybrid search "công nghệ thông tin" mất ~30000ms.
+
+**AI:** Thêm signal handler (SIGINT/SIGTERM) với cleanup_and_exit() giải phóng RAM. Phân tích RAM usage. Thảo luận về performance.
+
+**User:** Nên load model embedding vào GPU, cache chỉ 1 query cuối (cho việc chuyển mode BM25→Vector→Hybrid), không cần cache 100 queries.
+
+**AI:** Sửa cache từ dict 100 entries thành single last query cache. Thêm GPU auto-detect và model warmup.
+
+---
+
+**User:** Model embedding `bkai-foundation-models/vietnamese-bi-encoder` có đúng yêu cầu PhoBERT không?
+
+**AI:** Giải thích: model này dựa trên PhoBERT, train cho Vietnamese bi-encoder (semantic similarity). Đúng yêu cầu đề bài "Sentence-Transformers/PhoBERT".
+
+---
+
+**User:** Evaluation script chạy thế nào? Bộ test ở đâu? Precision và Recall tính như thế nào?
+
+**AI:** Giải thích chi tiết:
+- Bộ test: 20 queries hardcoded trong `TEST_QUERIES` (evaluation.py)
+- Precision@10 = relevant docs trong top 10 / 10
+- Recall dùng pooling-based: total_relevant = union relevant docs từ cả 3 methods (BM25, Vector, Hybrid)
+- is_relevant() kiểm tra doc chứa ≥1 keyword từ danh sách relevant_keywords
+
+---
+
+**User:** Hybrid search dùng BM25 trước sau đó dùng Vector phải không? Vậy alpha có ý nghĩa gì?
+
+**AI:** Clarify: BM25 và Vector chạy SONG SONG ĐỘC LẬP, không phải tuần tự. Alpha quyết định tin method nào hơn khi gộp scores. Ví dụ alpha=0.3 → 30% BM25 + 70% Vector. BM25 chỉ match exact terms, Vector hiểu synonym ("IT" ≈ "công nghệ thông tin").
+
+---
+
+**User:** Kiểm tra số liệu báo cáo M3. Thời gian build vector, content[:512] vs content[:200], chunk_size, alpha tuning.
+
+**AI:** Phát hiện vấn đề:
+- `alpha_tuning_results.json` ghi best_alpha = 0.0, báo cáo viết 0.3 → SAI
+- Sửa báo cáo: ghi rõ F1 cao nhất tại α=0.0, nhưng chọn α=0.3 với lý do:
+  1. α=0.0 là Vector-only, không phải Hybrid
+  2. BM25 cần cho exact-match (RTX 4090, iPhone 15 Pro Max)
+  3. Bộ test thiên ngôn ngữ tự nhiên, chưa cover keyword queries
+  4. F1 chênh chỉ 0.0025
+
+Giải thích:
+- content[:512] = đầu vào encode (model tự truncate 256 tokens), content[:200] = preview UI
+- chunk_size = 50K docs/chunk cho RAM management, KHÔNG phải shared context
+- Mỗi doc embed ĐỘC LẬP, batch_size=256 là GPU parallelism
+
+---
+
+**User:** BM25 score tính như thế nào?
+
+**AI:** Giải thích Okapi BM25 với ví dụ cụ thể:
+- score = Σ IDF(qi) × TF_normalized(qi, D)
+- IDF = log((N - df + 0.5) / (df + 0.5))
+- TF_norm = (TF × (k1+1)) / (TF + k1 × (1 - b + b × |D|/avgdl))
+- k1=1.5, b=0.75, ví dụ tính cho "laptop gaming" → score ≈ 15.18

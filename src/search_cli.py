@@ -40,10 +40,10 @@ def main():
 
         # Search
         t0 = time.time()
-        results = bm25.search(query, top_k)
+        results, total_matching = bm25.search(query, top_k)
         ms = (time.time() - t0) * 1000
 
-        print(f"  {len(results)} results in {ms:.1f}ms")
+        print(f"  {len(results)}/{total_matching:,} results in {ms:.1f}ms")
         for i, (doc_id, score, info) in enumerate(results, 1):
             print(f"  {i}. [{score:.3f}] {info['title'][:70]}")
             print(f"     {info.get('url', '')}")
