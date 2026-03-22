@@ -36,7 +36,7 @@ class HybridSearch:
     def __init__(self,
                  bm25_index_path: str = 'data/index/inverted_index.pkl',
                  vector_index_path: str = 'data/index/vector_index',
-                 alpha: float = 0.5,
+                 alpha: float = 0.3,
                  existing_index: 'InvertedIndex | None' = None,
                  existing_bm25: 'BM25 | None' = None):
         self.alpha = alpha
@@ -88,16 +88,18 @@ class HybridSearch:
             ) for doc_id, score, info in bm25_results
         ]
 
-    def search_bm25_only(self, query: str, top_k: int = 10) -> List[HybridSearchResult]:
-        """BM25 search only"""
-        return self._bm25_to_hybrid(self.bm25.search(query, top_k))
+    def search_bm25_only(self, query: str, top_k: int = 10):
+        """BM25 search only. Returns (results, total_matching)"""
+        results, total_matching = self.bm25.search(query, top_k)
+        return self._bm25_to_hybrid(results), total_matching
 
-    def search_vector_only(self, query: str, top_k: int = 10) -> List[HybridSearchResult]:
-        """Vector search only"""
+    def search_vector_only(self, query: str, top_k: int = 10):
+        """Vector search only. Returns (results, total_docs_in_index)"""
         if not self.has_vector:
-            return []
+            return [], 0
 
         results = self.vector_engine.search(query, top_k)
+        total_in_index = self.vector_engine.vector_index.index.ntotal if self.vector_engine.vector_index.index else 0
         return [
             HybridSearchResult(
                 doc_id=r.doc_id,
@@ -107,12 +109,13 @@ class HybridSearch:
                 title=r.title,
                 url=r.url
             ) for r in results
-        ]
+        ], total_in_index
 
     def search_hybrid(self, query: str, top_k: int = 10,
-                     alpha: Optional[float] = None) -> List[HybridSearchResult]:
+                     alpha: Optional[float] = None):
         """
-        Hybrid search with weighted score fusion
+        Hybrid search with weighted score fusion.
+        Returns (results, total_candidates)
         hybrid = alpha * bm25_norm + (1-alpha) * vector_norm
         """
         alpha = alpha if alpha is not None else self.alpha
@@ -121,7 +124,7 @@ class HybridSearch:
         k = top_k * 3
 
         # BM25 search — raw: [(doc_id, score, info), ...]
-        bm25_raw = self.bm25.search(query, k)
+        bm25_raw, bm25_total = self.bm25.search(query, k)
         bm25_scores = {d: s for d, s, _ in bm25_raw}
         bm25_info = {d: info for d, _, info in bm25_raw}
 
@@ -138,7 +141,7 @@ class HybridSearch:
         all_docs = set(bm25_scores.keys()) | set(vector_scores.keys())
 
         if not all_docs:
-            return []
+            return [], 0
 
         # Normalize scores
         bm25_list = [bm25_scores.get(d, 0) for d in all_docs]
@@ -163,11 +166,11 @@ class HybridSearch:
             ))
 
         results.sort(key=lambda x: x.hybrid_score, reverse=True)
-        return results[:top_k]
+        return results[:top_k], bm25_total
 
     def search(self, query: str, mode: str = 'hybrid',
-               top_k: int = 10, alpha: float = None) -> List[HybridSearchResult]:
-        """Search with specified mode: 'bm25', 'vector', or 'hybrid'"""
+               top_k: int = 10, alpha: float = None):
+        """Search with specified mode. Returns (results, total_matching)"""
         if mode == 'bm25':
             return self.search_bm25_only(query, top_k)
         elif mode == 'vector':
@@ -189,7 +192,7 @@ class HybridSearch:
 if __name__ == "__main__":
     print("Testing Hybrid Search")
 
-    search = HybridSearch(alpha=0.5)
+    search = HybridSearch(alpha=0.3)
     print(f"\nStats: {search.get_stats()}")
 
     query = "mua laptop gaming"
@@ -200,7 +203,8 @@ if __name__ == "__main__":
 
     for mode in ['bm25', 'vector', 'hybrid']:
         print(f"\nMode: {mode.upper()}")
-        results = search.search(query, mode=mode, top_k=3)
+        results, total = search.search(query, mode=mode, top_k=3)
+        print(f"  Total matching: {total:,}")
 
         for i, r in enumerate(results, 1):
             print(f"  {i}. [{r.hybrid_score:.4f}] {r.title[:50]}...")

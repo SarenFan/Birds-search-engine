@@ -201,19 +201,19 @@ class SearchEvaluator:
         # --- Collect results from all methods ---
 
         # BM25 Search — raw: [(doc_id, score, info), ...]
-        bm25_results = self.bm25.search(eval_query.query, k)
+        bm25_results, _ = self.bm25.search(eval_query.query, k)
         bm25_doc_ids = [doc_id for doc_id, _, _ in bm25_results]
 
         vector_doc_ids = []
         hybrid_doc_ids = []
 
         if self.hybrid_search and self.hybrid_search.has_vector:
-            vector_results = self.hybrid_search.search_vector_only(eval_query.query, k)
+            vector_results, _ = self.hybrid_search.search_vector_only(eval_query.query, k)
             vector_doc_ids = [r.doc_id for r in vector_results]
             results['vector'] = {'precision': 0, 'recall': 0, 'relevant_docs': []}
 
         if self.hybrid_search:
-            hybrid_results = self.hybrid_search.search_hybrid(eval_query.query, k)
+            hybrid_results, _ = self.hybrid_search.search_hybrid(eval_query.query, k)
             hybrid_doc_ids = [r.doc_id for r in hybrid_results]
             results['hybrid'] = {'precision': 0, 'recall': 0, 'relevant_docs': []}
 

@@ -8,6 +8,8 @@ import os
 import sys
 import time
 import json
+import signal
+import gc
 from flask import Flask, render_template, request, jsonify
 
 # Add src to path
@@ -88,19 +90,19 @@ def search():
     data = request.get_json()
     query = data.get('query', '')
     mode = data.get('mode', 'bm25')
-    top_k = min(int(data.get('top_k', 10)), 50)  # Max 50
-    page = int(data.get('page', 1))
-    
+    top_k = int(data.get('top_k', 10))
+    alpha = float(data.get('alpha', 0.3))
+
     if not query:
         return jsonify({'error': 'Empty query', 'results': []})
-    
+
     start_time = time.time()
     results = []
-    
+    total_matching = 0
+
     try:
         if mode == 'bm25' and bm25:
-            # BM25 raw: [(doc_id, score, info), ...]
-            search_results = bm25.search(query, top_k)
+            search_results, total_matching = bm25.search(query, top_k)
             results = [{
                 'doc_id': doc_id,
                 'score': round(score, 4),
@@ -111,7 +113,7 @@ def search():
             } for doc_id, score, info in search_results]
 
         elif mode in ['vector', 'hybrid'] and hybrid_search:
-            search_results = hybrid_search.search(query, mode=mode, top_k=top_k)
+            search_results, total_matching = hybrid_search.search(query, mode=mode, top_k=top_k, alpha=alpha)
             results = [{
                 'doc_id': r.doc_id,
                 'score': round(r.hybrid_score, 4),
@@ -124,8 +126,7 @@ def search():
             } for r in search_results]
 
         elif bm25:
-            # Fallback to BM25
-            search_results = bm25.search(query, top_k)
+            search_results, total_matching = bm25.search(query, top_k)
             results = [{
                 'doc_id': doc_id,
                 'score': round(score, 4),
@@ -134,29 +135,19 @@ def search():
                 'content_preview': documents.get(doc_id, {}).get('content', '')[:200],
                 'author': documents.get(doc_id, {}).get('author', 'Unknown'),
             } for doc_id, score, info in search_results]
-    
+
     except Exception as e:
         return jsonify({'error': str(e), 'results': []})
-    
+
     elapsed = (time.time() - start_time) * 1000
-    
-    # Pagination
-    per_page = 10
-    total_results = len(results)
-    total_pages = (total_results + per_page - 1) // per_page
-    start_idx = (page - 1) * per_page
-    end_idx = start_idx + per_page
-    paginated_results = results[start_idx:end_idx]
-    
+
     return jsonify({
         'query': query,
         'mode': mode,
-        'total_count': total_results,
-        'count': len(paginated_results),
-        'page': page,
-        'total_pages': total_pages,
+        'total_matching': total_matching,
+        'total_count': len(results),
         'time_ms': round(elapsed, 2),
-        'results': paginated_results
+        'results': results
     })
 
 
@@ -314,10 +305,13 @@ def create_templates():
             width: 100px;
             accent-color: #00d9ff;
         }
-        
-        .filter-control span {
-            min-width: 30px;
-            color: #00d9ff;
+
+        #alphaControl {
+            display: none;
+        }
+
+        #alphaControl.visible {
+            display: flex;
         }
         
         .results-container {
@@ -493,8 +487,16 @@ def create_templates():
                 
                 <div class="filter-control">
                     <label>Số kết quả:</label>
-                    <input type="range" id="topKSlider" min="5" max="50" value="10" step="5">
-                    <span id="topKValue">10</span>
+                    <input type="number" id="topKInput" min="1" max="500" value="10"
+                           style="width:70px; padding:6px 10px; border:2px solid rgba(255,255,255,0.2);
+                           border-radius:8px; background:rgba(0,0,0,0.3); color:#00d9ff;
+                           font-size:0.95rem; text-align:center; outline:none;">
+                </div>
+
+                <div class="filter-control" id="alphaControl">
+                    <label>Alpha (BM25 ↔ Vector):</label>
+                    <input type="range" id="alphaSlider" min="0" max="1" value="0.3" step="0.1">
+                    <span id="alphaValue">0.3</span>
                 </div>
             </div>
         </div>
@@ -521,116 +523,186 @@ def create_templates():
     <script>
         let currentMode = 'bm25';
         let currentPage = 1;
-        let currentQuery = '';
-        let totalPages = 1;
-        
-        // Mode selector
+        let cachedResults = [];
+        let cachedMeta = {};
+        const PER_PAGE = 10;
+
+        const alphaControl = document.getElementById('alphaControl');
         document.querySelectorAll('.mode-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 currentMode = btn.dataset.mode;
-                if (currentQuery) doSearch();
+                alphaControl.classList.toggle('visible', currentMode === 'hybrid');
             });
         });
-        
-        // Top K slider
-        const topKSlider = document.getElementById('topKSlider');
-        const topKValue = document.getElementById('topKValue');
-        topKSlider.addEventListener('input', () => {
-            topKValue.textContent = topKSlider.value;
+
+        const alphaSlider = document.getElementById('alphaSlider');
+        const alphaValueEl = document.getElementById('alphaValue');
+        alphaSlider.addEventListener('input', () => {
+            alphaValueEl.textContent = alphaSlider.value;
         });
-        topKSlider.addEventListener('change', () => {
-            if (currentQuery) doSearch();
-        });
-        
-        // Search function
-        async function doSearch(page = 1) {
-            currentQuery = document.getElementById('searchInput').value.trim();
-            if (!currentQuery) return;
-            
-            currentPage = page;
+
+        const topKInput = document.getElementById('topKInput');
+
+        async function doSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            const topK = Math.max(1, parseInt(topKInput.value) || 10);
+            topKInput.value = topK;
+
             document.getElementById('loading').style.display = 'block';
-            document.getElementById('resultsList').innerHTML = '';
+            document.getElementById('resultsList').textContent = '';
             document.getElementById('pagination').style.display = 'none';
-            
+
             try {
                 const response = await fetch('/search', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        query: currentQuery, 
-                        mode: currentMode, 
-                        top_k: parseInt(topKSlider.value),
-                        page: page
+                        query: query,
+                        mode: currentMode,
+                        top_k: topK,
+                        alpha: parseFloat(alphaSlider.value)
                     })
                 });
-                
+
                 const data = await response.json();
-                totalPages = data.total_pages;
-                
-                document.getElementById('resultsCount').textContent = 
-                    `Tìm thấy ${data.total_count} kết quả (${currentMode.toUpperCase()}) - Trang ${data.page}/${data.total_pages}`;
-                document.getElementById('resultsTime').textContent = 
-                    `⏱️ ${data.time_ms} ms`;
-                
-                const resultsHtml = data.results.map((r, i) => `
-                    <div class="result-item">
-                        <div class="result-title">
-                            ${(data.page - 1) * 10 + i + 1}. <a href="${r.url}" target="_blank">${r.title || r.doc_id}</a>
-                        </div>
-                        <div class="result-preview">${r.content_preview || ''}...</div>
-                        <div class="result-meta">
-                            <span class="result-score">Score: ${r.score}</span>
-                            ${r.bm25_score !== undefined ? `<span>BM25: ${r.bm25_score}</span>` : ''}
-                            ${r.vector_score !== undefined ? `<span>Vector: ${r.vector_score}</span>` : ''}
-                            <span class="result-author">👤 ${r.author || 'Unknown'}</span>
-                            <span>ID: ${r.doc_id}</span>
-                        </div>
-                    </div>
-                `).join('');
-                
-                document.getElementById('resultsList').innerHTML = 
-                    resultsHtml || '<div class="no-results">Không tìm thấy kết quả</div>';
-                
-                // Render pagination
-                renderPagination(data.page, data.total_pages);
-                
+                cachedResults = data.results || [];
+                cachedMeta = {
+                    query: data.query,
+                    mode: data.mode,
+                    total_matching: data.total_matching || 0,
+                    total_count: data.total_count || cachedResults.length,
+                    time_ms: data.time_ms
+                };
+
+                currentPage = 1;
+                renderPage(currentPage);
             } catch (error) {
-                document.getElementById('resultsList').innerHTML = 
-                    `<div class="no-results">Lỗi: ${error.message}</div>`;
+                document.getElementById('resultsList').textContent = 'Lỗi: ' + error.message;
             }
-            
+
             document.getElementById('loading').style.display = 'none';
         }
-        
-        function renderPagination(current, total) {
-            if (total <= 1) {
-                document.getElementById('pagination').style.display = 'none';
-                return;
+
+        function renderPage(page) {
+            currentPage = page;
+            const totalPages = Math.ceil(cachedResults.length / PER_PAGE) || 1;
+            const startIdx = (page - 1) * PER_PAGE;
+            const endIdx = Math.min(startIdx + PER_PAGE, cachedResults.length);
+            const pageResults = cachedResults.slice(startIdx, endIdx);
+
+            const m = cachedMeta;
+            let countText = '';
+            if (cachedResults.length > 0) {
+                countText = 'Hiển thị ' + (startIdx+1) + '-' + endIdx + ' / ' + m.total_count + ' kết quả';
+                if (m.total_matching > m.total_count) {
+                    countText += ' (tổng ' + m.total_matching.toLocaleString() + ' docs matching)';
+                }
+                countText += ' (' + currentMode.toUpperCase() + ')';
+                if (currentMode === 'hybrid') countText += ' | α=' + alphaSlider.value;
+            } else {
+                countText = 'Không tìm thấy kết quả';
             }
-            
-            let html = '';
-            html += `<button class="page-btn" onclick="doSearch(1)" ${current === 1 ? 'disabled' : ''}>« Đầu</button>`;
-            html += `<button class="page-btn" onclick="doSearch(${current-1})" ${current === 1 ? 'disabled' : ''}>‹ Trước</button>`;
-            
-            for (let i = Math.max(1, current-2); i <= Math.min(total, current+2); i++) {
-                html += `<button class="page-btn ${i === current ? 'active' : ''}" onclick="doSearch(${i})">${i}</button>`;
+            document.getElementById('resultsCount').textContent = countText;
+            document.getElementById('resultsTime').textContent = '⏱️ ' + m.time_ms + ' ms';
+
+            const container = document.getElementById('resultsList');
+            container.textContent = '';
+
+            if (pageResults.length === 0) {
+                const noRes = document.createElement('div');
+                noRes.className = 'no-results';
+                noRes.textContent = 'Không tìm thấy kết quả';
+                container.appendChild(noRes);
+            } else {
+                pageResults.forEach((r, i) => {
+                    const item = document.createElement('div');
+                    item.className = 'result-item';
+
+                    const title = document.createElement('div');
+                    title.className = 'result-title';
+                    const link = document.createElement('a');
+                    link.href = r.url;
+                    link.target = '_blank';
+                    link.textContent = r.title || r.doc_id;
+                    title.textContent = (startIdx + i + 1) + '. ';
+                    title.appendChild(link);
+
+                    const preview = document.createElement('div');
+                    preview.className = 'result-preview';
+                    preview.textContent = (r.content_preview || '') + '...';
+
+                    const meta = document.createElement('div');
+                    meta.className = 'result-meta';
+
+                    const scoreSpan = document.createElement('span');
+                    scoreSpan.className = 'result-score';
+                    scoreSpan.textContent = 'Score: ' + r.score;
+                    meta.appendChild(scoreSpan);
+
+                    if (r.bm25_score !== undefined) {
+                        const bs = document.createElement('span');
+                        bs.textContent = 'BM25: ' + r.bm25_score;
+                        meta.appendChild(bs);
+                    }
+                    if (r.vector_score !== undefined) {
+                        const vs = document.createElement('span');
+                        vs.textContent = 'Vector: ' + r.vector_score;
+                        meta.appendChild(vs);
+                    }
+
+                    const authorSpan = document.createElement('span');
+                    authorSpan.className = 'result-author';
+                    authorSpan.textContent = '👤 ' + (r.author || 'Unknown');
+                    meta.appendChild(authorSpan);
+
+                    const idSpan = document.createElement('span');
+                    idSpan.textContent = 'ID: ' + r.doc_id;
+                    meta.appendChild(idSpan);
+
+                    item.appendChild(title);
+                    item.appendChild(preview);
+                    item.appendChild(meta);
+                    container.appendChild(item);
+                });
             }
-            
-            html += `<button class="page-btn" onclick="doSearch(${current+1})" ${current === total ? 'disabled' : ''}>Sau ›</button>`;
-            html += `<button class="page-btn" onclick="doSearch(${total})" ${current === total ? 'disabled' : ''}>Cuối »</button>`;
-            
-            document.getElementById('pagination').innerHTML = html;
-            document.getElementById('pagination').style.display = 'flex';
+
+            renderPagination(page, totalPages);
         }
-        
-        // Event listeners
-        document.getElementById('searchBtn').addEventListener('click', () => doSearch(1));
+
+        function renderPagination(current, total) {
+            const pag = document.getElementById('pagination');
+            if (total <= 1) { pag.style.display = 'none'; return; }
+            pag.textContent = '';
+            pag.style.display = 'flex';
+
+            function addBtn(text, page, disabled) {
+                const btn = document.createElement('button');
+                btn.className = 'page-btn' + (page === current ? ' active' : '');
+                btn.textContent = text;
+                btn.disabled = disabled;
+                if (!disabled) btn.addEventListener('click', () => renderPage(page));
+                pag.appendChild(btn);
+            }
+
+            addBtn('« Đầu', 1, current === 1);
+            addBtn('‹ Trước', current - 1, current === 1);
+            for (let i = Math.max(1, current-2); i <= Math.min(total, current+2); i++) {
+                addBtn(String(i), i, false);
+            }
+            addBtn('Sau ›', current + 1, current === total);
+            addBtn('Cuối »', total, current === total);
+        }
+
+        // Event listeners (outside renderPagination)
+        document.getElementById('searchBtn').addEventListener('click', doSearch);
         document.getElementById('searchInput').addEventListener('keypress', e => {
-            if (e.key === 'Enter') doSearch(1);
+            if (e.key === 'Enter') doSearch();
         });
-        
+
         // Load stats
         fetch('/stats')
             .then(r => r.json())
@@ -651,21 +723,69 @@ def create_templates():
     print("✅ Templates created with Filter and Pagination")
 
 
+def cleanup_and_exit(signum=None, frame=None):
+    """Giải phóng RAM khi tắt server (Ctrl+C)"""
+    global bm25, index, hybrid_search, documents
+    print("\n\n🧹 Đang giải phóng RAM...")
+
+    if hybrid_search is not None:
+        if hasattr(hybrid_search, 'vector_engine') and hybrid_search.vector_engine is not None:
+            if hasattr(hybrid_search.vector_engine, 'model'):
+                del hybrid_search.vector_engine.model
+            if hasattr(hybrid_search.vector_engine, 'vector_index'):
+                del hybrid_search.vector_engine.vector_index
+            del hybrid_search.vector_engine
+        del hybrid_search
+        hybrid_search = None
+        print("  ✅ Hybrid search freed")
+
+    if bm25 is not None:
+        del bm25
+        bm25 = None
+        print("  ✅ BM25 freed")
+
+    if index is not None:
+        del index
+        index = None
+        print("  ✅ Inverted index freed")
+
+    documents.clear()
+    print("  ✅ Document cache freed")
+
+    gc.collect()
+
+    try:
+        import torch
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            print("  ✅ GPU VRAM freed")
+    except ImportError:
+        pass
+
+    print("👋 Tất cả RAM đã được giải phóng. Tạm biệt!")
+    sys.exit(0)
+
+
 if __name__ == "__main__":
     import argparse
-    
+
     parser = argparse.ArgumentParser(description='Voz Search Web UI')
     parser.add_argument('--host', default='0.0.0.0', help='Host')
     parser.add_argument('--port', '-p', type=int, default=5000, help='Port')
     parser.add_argument('--debug', action='store_true', help='Debug mode')
-    
+
     args = parser.parse_args()
-    
+
+    # Register signal handler for graceful shutdown
+    signal.signal(signal.SIGINT, cleanup_and_exit)
+    signal.signal(signal.SIGTERM, cleanup_and_exit)
+
     # Create templates
     create_templates()
-    
+
     # Initialize search
     init_search_engines()
-    
+
     print(f"\n🚀 Starting server at http://localhost:{args.port}")
+    print("💡 Nhấn Ctrl+C để tắt server và giải phóng RAM")
     app.run(host=args.host, port=args.port, debug=args.debug)
