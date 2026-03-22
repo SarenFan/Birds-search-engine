@@ -169,9 +169,9 @@ class VectorSearchEngine:
     # Vietnamese-compatible models
     MODELS = {
         'phobert': 'bkai-foundation-models/vietnamese-bi-encoder',  # PhoBERT-based, 768-dim
-        'multilingual': 'sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2',  # 384-dim
-        'labse': 'sentence-transformers/LaBSE',
-        'minilm': 'sentence-transformers/all-MiniLM-L6-v2'  # Fallback
+        # 'multilingual': 'sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2',  # 384-dim
+        # 'labse': 'sentence-transformers/LaBSE',
+        # 'minilm': 'sentence-transformers/all-MiniLM-L6-v2'  # Fallback
     }
     
     def __init__(self, model_name: str = 'phobert'):
@@ -189,9 +189,21 @@ class VectorSearchEngine:
         print(f"🔄 Loading model: {model_path}")
         self.model = SentenceTransformer(model_path)
         self.dimension = self.model.get_sentence_embedding_dimension()
-        print(f"✅ Model loaded. Dimension: {self.dimension}")
-        
+
+        # Move model to GPU if available for faster query encoding
+        self._device = self._detect_device()
+        if self._device == 'cuda':
+            self.model = self.model.to('cuda')
+        print(f"✅ Model loaded on {self._device.upper()}. Dimension: {self.dimension}")
+
         self.vector_index = VectorIndex(self.dimension)
+        self._last_query = None        # Cache last query text
+        self._last_embedding = None    # Cache last query embedding
+
+        # Warmup: first encode is slow due to JIT compilation
+        print("🔥 Warming up model...")
+        self.model.encode("warmup", convert_to_numpy=True, device=self._device)
+        print("✅ Model ready")
     
     @staticmethod
     def _detect_device():
@@ -234,7 +246,7 @@ class VectorSearchEngine:
         print(f"Building vector index from {jsonl_path}")
         start_time = datetime.now()
 
-        device = self._detect_device()
+        device = self._device  # Use device detected at init
         if batch_size <= 0:
             batch_size = 256 if device == 'cuda' else 64
 
@@ -330,18 +342,23 @@ class VectorSearchEngine:
     def search(self, query: str, top_k: int = 10) -> List[VectorSearchResult]:
         """
         Search for documents matching the query
-        
+
         Args:
             query: Search query
             top_k: Number of results
-            
+
         Returns:
             List of VectorSearchResult
         """
-        # Encode query
-        query_embedding = self.model.encode(query, convert_to_numpy=True)
-        
-        # Search
+        # Cache last query embedding — reuse when switching modes (BM25→Vector→Hybrid)
+        if query == self._last_query and self._last_embedding is not None:
+            query_embedding = self._last_embedding
+        else:
+            query_embedding = self.model.encode(query, convert_to_numpy=True,
+                                                device=self._device)
+            self._last_query = query
+            self._last_embedding = query_embedding
+
         return self.vector_index.search(query_embedding, top_k)
     
     def save_index(self, path: str = 'data/index/vector_index'):
