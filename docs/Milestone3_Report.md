@@ -310,24 +310,4 @@ Chi tiết: xem [docs/Evaluation_Report.md](docs/Evaluation_Report.md)
 
 ---
 
-## 7. Tổng kết
-
-### 7.1. Đã hoàn thành
-
-| Yêu cầu | Trạng thái | Điểm |
-|----------|-----------|------|
-| Vector Search (FAISS + vietnamese-bi-encoder) | Hoàn thành | 3 |
-| Web Interface (Search, Filter, Pagination, Alpha tuning) | Hoàn thành | 3 |
-| Evaluation (20 queries, Precision@10, phân tích) | Hoàn thành | 2 |
-| Báo cáo + Demo + AI Log | Hoàn thành | 2 |
-
-### 7.2. Điểm nổi bật
-
-1. **Model chuyên biệt tiếng Việt:** Sử dụng `vietnamese-bi-encoder` thay vì model đa ngôn ngữ, Precision@10 = 0.9950
-2. **Alpha Tuning:** Grid search cho F1 cao nhất tại α=0.0, chọn α=0.3 (hybrid thực tế) vì giữ BM25 cho exact-match. F1 cải thiện +4.1% so với default 0.5
-3. **UI điều chỉnh được:** User có thể tùy chỉnh alpha và số kết quả real-time trên giao diện
-4. **Evaluation chi tiết:** Phân tích per-query tại sao AI tốt hơn hoặc tệ hơn cho từng trường hợp
-
----
-
 *Báo cáo Milestone 3 — SEG301 Social Listening Project*
