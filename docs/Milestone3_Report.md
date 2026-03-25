@@ -122,17 +122,7 @@ scores, indices = self.index.search(query_embedding, top_k)
 | Similarity | Cosine (via Inner Product trên normalized vectors) |
 | Kích thước file | ~3 GB |
 
-### 3.3. Ví dụ Semantic Search
 
-Vector Search tìm được kết quả **ngữ nghĩa tương đương** dù khác từ khóa:
-
-| Query | BM25 tìm được? | Vector tìm được? |
-|-------|----------------|-------------------|
-| "máy tính chơi game" | Không (không match "laptop gaming") | Có — tìm được "laptop gaming" |
-| "đi chơi miền trung" | Không | Có — tìm được "du lịch đà nẵng" |
-| "kiếm tiền khi còn đi học" | Không | Có — tìm được "làm thêm sinh viên" |
-
-**Code:** [src/search/vector_search.py](src/search/vector_search.py)
 
 ---
 
