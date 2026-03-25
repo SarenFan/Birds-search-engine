@@ -131,7 +131,6 @@ Vector Search tìm được kết quả **ngữ nghĩa tương đương** dù kh
 | "máy tính chơi game" | Không (không match "laptop gaming") | Có — tìm được "laptop gaming" |
 | "đi chơi miền trung" | Không | Có — tìm được "du lịch đà nẵng" |
 | "kiếm tiền khi còn đi học" | Không | Có — tìm được "làm thêm sinh viên" |
-| "lấy vợ sớm" | Không | Có — tìm được "lập gia đình trẻ" |
 
 **Code:** [src/search/vector_search.py](src/search/vector_search.py)
 
